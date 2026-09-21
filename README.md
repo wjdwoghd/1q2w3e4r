@@ -6,6 +6,11 @@
 
 기획 기준: [프로젝트 Notion 문서](https://app.notion.com/p/SBOM-3e24a9a6169880f6bc91dd3d61a376ac)
 
+## 주요 문서
+
+- [개발 로드맵](./ROADMAP.md)
+- [GitHub 협업 설정](./.github/OVERVIEW.md)
+
 ## 프로젝트 방향
 
 - SBOM의 구성요소와 버전을 기준으로 알려진 취약점과 공급망 정보를 연결한다.
