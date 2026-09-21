@@ -1,0 +1,29 @@
+# Environment
+.env
+.venv/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# ML Model
+*.pkl
+*.joblib
+*.keras
+
+# Dataset and generated output
+**/data/raw/
+**/data/output/
+reports/*
+!reports/.gitkeep
+!reports/README.md
+
+# Database
+*.db
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
