@@ -9,6 +9,8 @@
 ## 주요 문서
 
 - [개발 로드맵](./ROADMAP.md)
+- [GitHub 협업 원칙](./docs/github_collaboration.md)
+- [코드 작성 원칙](./docs/coding_conventions.md)
 - [GitHub 협업 설정](./.github/OVERVIEW.md)
 
 ## 프로젝트 방향
@@ -292,6 +294,8 @@ API 키 등 실제 비밀값은 로컬 `.env`에만 등록한다. `.env.example`
 
 ## 개발 컨벤션
 
+상세 기준은 [코드 작성 원칙](./docs/coding_conventions.md)을 참조한다.
+
 - Python 코드는 PEP 8을 따른다.
 - 디렉터리·Python 파일·변수·함수는 `snake_case`, 클래스는 `PascalCase`, 상수·환경 변수는 `UPPER_SNAKE_CASE`를 사용한다.
 - 파일명 예: `service.py`, `kev_client.py`, `report_generator.py`, `verify_remediation.py`.
@@ -303,6 +307,8 @@ API 키 등 실제 비밀값은 로컬 `.env`에만 등록한다. `.env.example`
 
 ## Git 브랜치 전략
 
+작업 등록부터 PR 리뷰, 커밋과 증적 관리까지의 절차는 [GitHub 협업 원칙](./docs/github_collaboration.md)을 참조한다.
+
 경량 Git Flow를 사용하며 별도 `release` 브랜치는 운영하지 않는다.
 
 | 브랜치 | 역할 |
@@ -310,6 +316,8 @@ API 키 등 실제 비밀값은 로컬 `.env`에만 등록한다. `.env.example`
 | `main` | 최종 배포 및 발표 버전 |
 | `develop` | 기능 통합 |
 | `feat/*` | `develop`에서 분기하는 기능 개발 |
+| `fix/*` | `develop`에서 분기하는 일반 오류 수정 |
+| `docs/*` | `develop`에서 분기하는 문서 작성 및 수정 |
 | `hotfix/*` | 배포 후 긴급 수정이 필요할 때 생성 |
 
 기능 개발은 `feat/*`에서 진행하고 PR로 `develop`에 병합한다. 최종 버전은 `develop`에서 `main`으로 병합한다. 긴급 수정은 `main`에서 분기하여 수정 후 `main`과 `develop` 모두에 반영한다.
