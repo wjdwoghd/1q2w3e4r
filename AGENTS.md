@@ -195,35 +195,49 @@ AI의 역할:
 
 ## 4.1 app/
 
-사용자 인터페이스 및 API Layer.
+Python Flask 서버 및 HTML·CSS·JavaScript 사용자 인터페이스 계층.
 
-예:
-
+```text
 app/
 ├── main.py
 ├── api/
-└── dashboard/
+├── config/
+├── templates/
+│   └── components/
+└── static/
+    ├── css/
+    └── js/
+```
+
+각 경로의 책임:
+
+- `main.py`: 서버 진입점, API 등록 및 화면 라우트 연결.
+- `api/`: 요청 검증, core 서비스 호출 및 응답 생성.
+- `config/`: 서버 설정 및 로깅 설정.
+- `templates/`: HTML 화면. 공통 템플릿 조각은 `components/`에 둔다.
+- `static/css/`: 화면 스타일.
+- `static/js/`: 브라우저 사용자 입력, API 호출 및 결과 표시.
 
 app/에는 핵심 분석 로직을 작성하지 않는다.
 
 금지 예:
 
-app/dashboard/pages/03_Vulnerabilities.py 내부에서
-직접 CVE API를 호출하거나 Risk Score를 계산하지 않는다.
+HTML 템플릿 또는 브라우저 JavaScript에서 직접 외부 CVE API를 호출하거나
+Risk Score 및 Verification 결과를 자체 계산·판정하지 않는다.
 
 올바른 구조:
 
-Dashboard
-→ core 함수 호출
-→ 결과 표시
+브라우저 JavaScript
+→ app/api/ 요청
+→ core 서비스 호출
+→ API 응답
+→ 화면에 결과와 근거 표시
 
-app/의 책임:
+DB 접근은 core 서비스와 database 계층을 거친다.
+API 키, DB 접속정보 등 비밀값은 HTML과 JavaScript에 포함하지 않는다.
 
-- 사용자 입력
-- API Request / Response
-- Dashboard 렌더링
-- core 호출
-- 결과 표현
+현재 화면 파일은 빈 HTML 골격이며 서버 실행과 렌더링은 후속 구현 대상이다.
+디렉터리가 존재한다는 이유만으로 기능 구현이 완료된 것으로 판단하지 않는다.
 
 
 ## 4.2 core/sbom/

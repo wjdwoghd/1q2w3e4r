@@ -30,6 +30,11 @@ import는 표준 라이브러리, 외부 라이브러리, 프로젝트 모듈 �
 | 위치 | 책임 |
 | --- | --- |
 | `app/` | 사용자 입력, API 요청과 응답, core 호출 및 화면 표시 |
+| `app/api/` | 서버 API 요청 검증, core 서비스 호출과 응답 생성 |
+| `app/templates/` | HTML 화면과 `components/`의 공통 템플릿 조각 |
+| `app/static/css/` | 화면 스타일 |
+| `app/static/js/` | 브라우저 입력 처리, API 호출과 결과 표시 |
+| `app/config/` | 서버 설정과 로깅 설정 |
 | `core/sbom/` | SBOM 생성, 파싱, 정규화와 변경 비교 |
 | `core/vulnerability/` | Component 매칭과 CVE, CVSS, CWE, KEV, EOL 정보 처리 |
 | `core/assets/` | 금융서비스 및 Asset Context 처리 |

@@ -925,6 +925,16 @@ Verification Status
 
 전체 분석 흐름을 하나의 UI에서 확인한다.
 
+## 구현 위치
+
+- `app/main.py`: Flask 서버 진입점 및 화면 라우트 연결.
+- `app/api/`: 화면에서 호출하는 서버 API.
+- `app/templates/`: HTML 화면과 `components/`의 공통 템플릿 조각.
+- `app/static/css/`: 스타일시트.
+- `app/static/js/`: 브라우저 상호작용과 API 요청·결과 표시.
+
+현재 디렉터리와 빈 HTML 골격만 준비되어 있다. 아래 Page 목록은 기능별 계획이며 파일명이나 구현 완료 상태를 의미하지 않는다.
+
 ## 초기 Page
 
 ```text
@@ -941,7 +951,7 @@ Verification Status
 ## 구현 원칙
 
 - UI에서 핵심 비즈니스 로직을 직접 구현하지 않는다.
-- 모든 분석은 `core/`를 통해 수행한다.
+- 브라우저는 `app/api/`를 호출하고, 서버는 `core/`를 통해 분석을 수행한다.
 - UI 완성도보다 Pipeline 정확성을 우선한다.
 
 ## 작업
