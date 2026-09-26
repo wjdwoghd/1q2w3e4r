@@ -16,4 +16,4 @@
 | `remediation.py` | 수행한 개선 조치 |
 | `verification.py` | 조치 후 검증 결과 |
 
-`business_service.py`, `sbom.py`, `recommendation.py`는 추가 예정이며 이번 변경은 문서에만 반영했다.
+Phase 1에서 `business_service.py`, `asset.py`와 공통 입력 검증을 구현했다. 나머지 엔티티는 후속 단계이다.

@@ -255,20 +255,20 @@ data/assets/
 
 ## 작업
 
-- [ ] `BusinessService` Model
-- [ ] `Asset` Model
-- [ ] Asset Context Schema
-- [ ] Sample 금융서비스 데이터
-- [ ] Asset CRUD 또는 최소 등록/조회 기능
-- [ ] DB 저장
-- [ ] Validation
+- [x] `BusinessService` Model
+- [x] `Asset` Model
+- [x] Asset Context Schema
+- [x] Sample 금융서비스 데이터
+- [x] Asset CRUD 또는 최소 등록/조회 기능
+- [x] DB 저장
+- [x] Validation
 
 ## 테스트
 
-- [ ] 필수 필드 검증
-- [ ] 잘못된 Criticality 값 처리
-- [ ] Production / Development 구분
-- [ ] Internet Exposure 정상 처리
+- [x] 필수 필드 검증
+- [x] 잘못된 Criticality 값 처리
+- [x] Production / Development 구분
+- [x] Internet Exposure 정상 처리
 
 ## 완료 조건
 
