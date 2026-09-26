@@ -278,6 +278,11 @@ Asset Context를 코드에서 안정적으로 조회할 수 있다.
 
 # 7. Phase 2. SBOM Engine
 
+> 단계 번호 안내: 이 ROADMAP은 생성·파싱·정규화·저장을 하나로 묶은 계획이다.
+> AGENTS.md의 MVP 순서는 Phase 2 = Parser, Phase 3 = Normalizer로 더 세분화되어 있다.
+> 현재 작업은 AGENTS.md 기준 Phase 2이며 CycloneDX JSON 파서만 구현했다.
+> 아래 나머지 항목이 완료된 것은 아니다. 상세 계약은 core/sbom/README.md를 참조한다.
+
 ## 목표
 
 분석 대상 애플리케이션에서 SBOM을 생성하고 Component를 추출한다.
@@ -313,22 +318,22 @@ diff.py
 
 - [ ] SBOM 생성 도구 선정
 - [ ] SBOM 생성 Wrapper
-- [ ] CycloneDX Parser
-- [ ] Component Name 추출
-- [ ] Version 추출
-- [ ] PURL 추출
-- [ ] Dependency 관계 추출
-- [ ] Supplier 추출
-- [ ] Hash 추출
-- [ ] License 추출
+- [x] CycloneDX Parser
+- [x] Component Name 추출
+- [x] Version 추출
+- [x] PURL 추출
+- [x] Dependency 관계 추출
+- [x] Supplier 추출
+- [x] Hash 추출
+- [x] License 추출
 - [ ] Component 정규화
 - [ ] DB 저장
 
 ## 테스트
 
-- [ ] 정상 SBOM Parsing
-- [ ] 필드 일부 누락 SBOM 처리
-- [ ] 중복 Component 처리
+- [x] 정상 SBOM Parsing
+- [x] 필드 일부 누락 SBOM 처리
+- [x] 중복 Component 처리
 - [ ] Version 정규화
 - [ ] PURL Parsing
 
