@@ -1,0 +1,58 @@
+{
+  "description": "Synthetic inventory only; not scan or patch evidence.",
+  "business_services": [
+    {
+      "service_id": "SVC-001",
+      "name": "Demo Internet Banking"
+    },
+    {
+      "service_id": "SVC-002",
+      "name": "Demo Card Payments"
+    },
+    {
+      "service_id": "SVC-003",
+      "name": "Demo Loan Review"
+    }
+  ],
+  "assets": [
+    {
+      "asset_id": "AST-001",
+      "name": "Demo Banking API",
+      "business_service_id": "SVC-001",
+      "environment": "production",
+      "internet_exposed": true,
+      "business_criticality": "critical",
+      "customer_information": true,
+      "credit_information": true,
+      "vendor": "Fictional Vendor",
+      "owner": "Demo Platform Team",
+      "patch_status": "unknown"
+    },
+    {
+      "asset_id": "AST-002",
+      "name": "Demo Card Gateway",
+      "business_service_id": "SVC-002",
+      "environment": "production",
+      "internet_exposed": false,
+      "business_criticality": "critical",
+      "customer_information": true,
+      "credit_information": false,
+      "vendor": "Fictional Vendor",
+      "owner": "Demo Platform Team",
+      "patch_status": "unknown"
+    },
+    {
+      "asset_id": "AST-003",
+      "name": "Demo Loan Worker",
+      "business_service_id": "SVC-003",
+      "environment": "development",
+      "internet_exposed": false,
+      "business_criticality": "medium",
+      "customer_information": false,
+      "credit_information": false,
+      "vendor": "Fictional Vendor",
+      "owner": "Demo Platform Team",
+      "patch_status": "unknown"
+    }
+  ]
+}
