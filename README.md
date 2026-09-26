@@ -142,7 +142,7 @@ vulnerable/ -> SBOM 생성 -> 취약점 발견 -> 개선방안
 
 ## 목표 디렉터리 구조
 
-아래는 확정한 구현 방향에 맞춘 목표 구조이다. 이번 변경은 README에만 반영했으며 실제 파일 생성·이동·삭제는 아직 수행하지 않았다. 디렉터리별 README는 트리에서 생략한다.
+아래는 확정한 구현 방향에 맞춘 목표 구조이다. `app/`의 HTML 템플릿과 정적 파일 디렉터리는 반영했으며, 나머지 목표 경로와 실행 구현은 준비 상태에 따라 다를 수 있다. 디렉터리별 README는 트리에서 생략한다.
 
 ```text
 1q2w3e4r/
@@ -159,16 +159,20 @@ vulnerable/ -> SBOM 생성 -> 취약점 발견 -> 개선방안
 │   │   ├── findings.py
 │   │   ├── remediation.py
 │   │   └── reports.py
-│   └── dashboard/
-│       ├── Home.py
-│       └── pages/
-│           ├── 01_Assets.py
-│           ├── 02_SBOM.py
-│           ├── 03_Vulnerabilities.py
-│           ├── 04_Risk.py
-│           ├── 05_Remediation.py
-│           ├── 06_Verification.py
-│           └── 07_Report.py
+│   ├── config/
+│   ├── templates/
+│   │   ├── home.html
+│   │   ├── assets.html
+│   │   ├── sbom.html
+│   │   ├── vulnerabilities.html
+│   │   ├── risk.html
+│   │   ├── remediation.html
+│   │   ├── verification.html
+│   │   ├── report.html
+│   │   └── components/
+│   └── static/
+│       ├── css/
+│       └── js/
 ├── core/
 │   ├── sbom/
 │   │   ├── generator.py
@@ -280,7 +284,7 @@ vulnerable/ -> SBOM 생성 -> 취약점 발견 -> 개선방안
 
 | 구분 | 계획 |
 | --- | --- |
-| 분석 플랫폼 | Python, Flask API, Streamlit 대시보드 |
+| 분석 플랫폼 | Python Flask 서버/API, HTML·CSS·JavaScript 화면 |
 | SBOM | CycloneDX를 기본 형식으로 고려, Syft 등 기존 생성 도구 활용 검토 |
 | 위험평가 | 설명 가능한 규칙 기반 엔진 |
 | AI 컨설팅 | OpenAI API로 검증된 분석 결과 해석 및 문서 생성 |
@@ -298,7 +302,7 @@ API 키 등 실제 비밀값은 로컬 `.env`에만 등록한다. `.env.example`
 - Python 코드는 PEP 8을 따른다.
 - 디렉터리·Python 파일·변수·함수는 `snake_case`, 클래스는 `PascalCase`, 상수·환경 변수는 `UPPER_SNAKE_CASE`를 사용한다.
 - 파일명 예: `service.py`, `kev_client.py`, `report_generator.py`, `verify_remediation.py`.
-- 확정 구조의 `labs/eol-component/`, `Home.py`, `01_Assets.py`~`07_Report.py`는 명명 규칙의 예외로 유지한다.
+- 확정 구조의 `labs/eol-component/`는 명명 규칙의 예외로 유지한다.
 - import는 표준 라이브러리, 외부 라이브러리, 프로젝트 모듈 순으로 구분한다.
 - 주석은 규칙의 근거나 판단 이유를 설명한다.
 - 요청·화면 처리는 `app/`, 분석은 `core/`, 영속성 처리는 `database/`에 둔다.
