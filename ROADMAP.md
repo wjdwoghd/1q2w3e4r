@@ -72,7 +72,10 @@ Report
 
 ## Current Phase
 
-**Phase 0 - 프로젝트 설계 및 저장소 초기화**
+**최근 구현: Phase 2 - SBOM Parser (CycloneDX JSON)**
+
+파서의 로컬 단위 테스트 14개가 통과했다. 이 상태는 Phase 1이나 생성·저장·Lab 연동의
+완료를 의미하지 않는다. 다른 단계는 해당 기능의 구현·검증 근거로 별도 갱신한다.
 
 ## Progress
 
@@ -146,6 +149,9 @@ Before / After
 
 # 5. 개발 단계
 
+Phase 번호와 범위는 [AGENTS.md §24](AGENTS.md#24-mvp-development-order)를 따른다.
+아래 Phase 1~12는 해당 표와 일치한다. 준비·지원·확장은 별도 절에서 관리한다.
+
 ## Phase 0. 프로젝트 설계 및 저장소 초기화
 
 ### 목표
@@ -192,7 +198,7 @@ docs/
 
 ---
 
-# 6. Phase 1. Asset & Business Context
+# 6. Phase 1. Asset Model
 
 ## 목표
 
@@ -276,82 +282,78 @@ Asset Context를 코드에서 안정적으로 조회할 수 있다.
 
 ---
 
-# 7. Phase 2. SBOM Engine
-
-> 단계 번호 안내: 이 ROADMAP은 생성·파싱·정규화·저장을 하나로 묶은 계획이다.
-> AGENTS.md의 MVP 순서는 Phase 2 = Parser, Phase 3 = Normalizer로 더 세분화되어 있다.
-> 현재 작업은 AGENTS.md 기준 Phase 2이며 CycloneDX JSON 파서만 구현했다.
-> 아래 나머지 항목이 완료된 것은 아니다. 상세 계약은 core/sbom/README.md를 참조한다.
+# 7. Phase 2. SBOM Parser
 
 ## 목표
 
-분석 대상 애플리케이션에서 SBOM을 생성하고 Component를 추출한다.
-
-## 기본 형식
-
-우선 **CycloneDX** 형식을 기준으로 한다.
-
-## 추출 대상
-
-```text
-Component Name
-Version
-PURL
-Dependency
-Supplier
-Hash
-License
-```
+기존 CycloneDX JSON SBOM에서 구성요소와 의존성 기록을 추출한다.
+생성 도구 실행, 정규화, DB 저장은 이 단계의 완료 조건에 포함하지 않는다.
 
 ## 구현 위치
 
-```text
-core/sbom/
-
-generator.py
-parser.py
-normalizer.py
-diff.py
-```
+- `core/sbom/parser.py`
+- `tests/unit/test_sbom.py`
+- `tests/fixtures/cyclonedx.json`
 
 ## 작업
 
-- [ ] SBOM 생성 도구 선정
-- [ ] SBOM 생성 Wrapper
-- [x] CycloneDX Parser
-- [x] Component Name 추출
-- [x] Version 추출
-- [x] PURL 추출
-- [x] Dependency 관계 추출
-- [x] Supplier 추출
-- [x] Hash 추출
-- [x] License 추출
-- [ ] Component 정규화
-- [ ] DB 저장
+- [x] CycloneDX JSON Parser (1.4, 1.5, 1.6)
+- [x] Component Name / Version / PURL 추출
+- [x] Dependency 관계 및 중첩 Component 추출
+- [x] Supplier / Hash / License 추출
+- [x] 누락 필드와 잘못된 입력 처리
 
 ## 테스트
 
 - [x] 정상 SBOM Parsing
 - [x] 필드 일부 누락 SBOM 처리
-- [x] 중복 Component 처리
-- [ ] Version 정규화
-- [ ] PURL Parsing
+- [x] 중복 Component 참조 처리
+- [x] 잘못된 JSON·형식·버전·파일 처리
 
 ## 완료 조건
 
-```text
-Application
-↓
-SBOM
-↓
-Normalized Component List
-```
-
-흐름이 정상적으로 작동한다.
+기존 SBOM → ParsedSBOM / ParsedComponent 흐름이 실행되고 오류가 명시적으로 전달된다.
+원본 필드를 보존하며 누락된 버전·PURL을 추측하지 않는다. XML과 전체 Schema 검증은
+현재 미지원이다. 지원 계약과 14개 단위 테스트는 [파서 문서](core/sbom/README.md)를 참조한다.
 
 ---
 
-# 8. Phase 3. Vulnerability Intelligence
+# 8. Phase 3. Component Normalizer
+
+## 목표
+
+파서의 원본 추출 결과를 재현 가능한 규칙으로 정규화하여 취약점 매칭에 전달한다.
+원본 값과 정규화 결과를 구분하고 없는 버전이나 PURL을 사실처럼 생성하지 않는다.
+
+## 구현 위치
+
+- `core/sbom/normalizer.py`
+- `tests/unit/test_sbom.py`
+
+## 작업
+
+- [ ] Component 이름·공급자·Package 정보 정규화 규칙
+- [ ] Version 정규화 규칙과 원본 보존
+- [ ] PURL Parsing 및 정규화
+- [ ] 중복 Component 식별·처리 정책
+- [ ] 누락·지원하지 않는 입력 처리
+- [ ] 후속 Matcher 및 저장 계층에 전달할 Interface 정의
+
+## 테스트
+
+- [ ] Version 정규화
+- [ ] PURL Parsing
+- [ ] 중복 및 누락 필드 처리
+- [ ] 같은 입력의 정규화 결과 재현성
+
+## 완료 조건
+
+Parsed Component List → Normalized Component List 흐름과 변환 근거를 확인할 수 있다.
+생성 Wrapper와 DB 저장은 별도 지원 작업으로 관리한다.
+
+---
+
+# 9. Phase 4. CVE / CVSS / CWE / KEV Matcher
 
 ## 목표
 
@@ -364,8 +366,9 @@ CVE
 CVSS
 CWE
 CISA KEV
-EOL
 ```
+
+EOL은 확장 항목이며 Phase 4의 필수 범위와 구분한다.
 
 ## 구현 위치
 
@@ -388,7 +391,7 @@ eol_client.py
 - [ ] CVSS 조회
 - [ ] CWE 조회
 - [ ] CISA KEV 조회
-- [ ] EOL 조회
+- [ ] EOL 조회 (확장 범위; Phase 4 필수 완료 조건에서 제외)
 - [ ] Component ↔ CVE Matching
 - [ ] 결과 DB 저장
 - [ ] External API Error Handling
@@ -416,15 +419,13 @@ CVSS
 CWE
 ↓
 KEV
-↓
-EOL
 ```
 
 연결이 가능하다.
 
 ---
 
-# 9. Phase 4. Rule-based Risk Engine
+# 10. Phase 5. Rule-based Risk Engine
 
 ## 목표
 
@@ -514,7 +515,7 @@ Priority와 그 이유를 모두 반환한다.
 
 ---
 
-# 10. Phase 5. Finding Management
+# 11. Phase 6. Finding 생성
 
 ## 목표
 
@@ -567,13 +568,18 @@ Risk Accepted
 
 ---
 
-# 11. Phase 6. Financial Security Control Mapping
+# 12. Phase 7. Recommendation
 
-## 목표
+보안통제를 매핑한 뒤 검증된 분석 결과로 개선안과 검증계획을 생성한다.
+최종 컨설팅 보고서는 Phase 12에서 작성한다.
+
+## 7.1. Financial Security Control Mapping
+
+### 목표
 
 발견된 Finding을 금융권 보안기준과 연결한다.
 
-## 초기 범위
+### 초기 범위
 
 초기에는 범위를 최소화한다.
 
@@ -583,7 +589,7 @@ ISMS-P
 금융분야 오픈소스 관리 관련 기준
 ```
 
-## 원칙
+### 원칙
 
 이 기능은 공식 규정 준수 여부를 판정하지 않는다.
 
@@ -599,7 +605,7 @@ Finding
 관리적 개선 관점
 ```
 
-## 구현 위치
+### 구현 위치
 
 ```text
 core/compliance/
@@ -609,7 +615,7 @@ controls.py
 standards/
 ```
 
-## 작업
+### 작업
 
 - [ ] Security Control Schema
 - [ ] Control Dataset
@@ -617,19 +623,19 @@ standards/
 - [ ] Technical / Administrative 구분
 - [ ] Mapping 근거 저장
 
-## 완료 조건
+### 완료 조건
 
 Finding에서 관련 보안통제를 조회할 수 있다.
 
 ---
 
-# 12. Phase 7. AI Consulting
+## 7.2. Recommendation 생성
 
-## 목표
+### 목표
 
 검증된 분석 결과를 기반으로 AI가 컨설팅 내용을 작성한다.
 
-## AI 입력
+### AI 입력
 
 AI에는 구조화되고 검증된 데이터만 제공한다.
 
@@ -647,7 +653,7 @@ Risk Reasons
 Security Control
 ```
 
-## AI 출력
+### AI 출력
 
 ```text
 발견사항
@@ -657,10 +663,10 @@ Security Control
 관리적 개선방안
 임시 완화방안
 Verification Plan
-보고서 초안
+개선안 설명 초안
 ```
 
-## 금지사항
+### 금지사항
 
 AI가 다음을 임의 생성하면 안 된다.
 
@@ -675,7 +681,7 @@ Scanner 결과
 Verification 결과
 ```
 
-## 구현 위치
+### 구현 위치
 
 ```text
 core/consulting/
@@ -683,92 +689,26 @@ core/consulting/
 analyzer.py
 recommender.py
 prompts.py
-report_generator.py
 ```
 
-## 작업
+### 작업
 
 - [ ] Prompt Template
 - [ ] Structured Input
 - [ ] Structured Output
 - [ ] Hallucination 방지 규칙
+- [ ] Recommendation Model 및 저장
 - [ ] Recommendation 생성
 - [ ] Verification Plan 생성
 - [ ] AI Error 처리
 
-## 완료 조건
+### 완료 조건
 
 자동화 결과를 기반으로 설명 가능한 Recommendation을 생성한다.
 
 ---
 
-# 13. Phase 8. First Vulnerable Lab
-
-## 목표
-
-하나의 취약 환경을 만들어 전체 Pipeline을 실제로 검증한다.
-
-## 기본 구조
-
-```text
-labs/<lab-name>/
-├── README.md
-├── vulnerable/
-└── patched/
-```
-
-## Lab README 필수 내용
-
-```text
-취약 Component
-취약 Version
-관련 CVE
-Lab 목적
-개선 방법
-Verification 방법
-실행 방법
-```
-
-## 첫 번째 Lab 선정 기준
-
-- SBOM에서 Component 식별이 명확할 것
-- CVE Mapping이 명확할 것
-- 취약 버전 / 개선 버전 구분이 명확할 것
-- Before / After 검증이 가능할 것
-- 실습환경에서 안전하게 재현 가능할 것
-
-## 작업
-
-- [ ] 첫 Lab 선정
-- [ ] vulnerable 환경 작성
-- [ ] patched 환경 작성
-- [ ] SBOM 생성 확인
-- [ ] CVE Mapping 확인
-- [ ] Risk 계산 확인
-- [ ] 개선 시나리오 작성
-- [ ] Verification 방법 작성
-
-## 완료 조건
-
-```text
-Vulnerable
-↓
-Detection
-↓
-Recommendation
-↓
-Patched
-↓
-Re-scan
-↓
-Verification
-```
-
-전체 흐름이 가능하다.
-
----
-
-# 14. Phase 9. Remediation Management
+# 13. Phase 8. Remediation
 
 ## 목표
 
@@ -787,14 +727,12 @@ Remediation
 ## 구현 위치
 
 ```text
-database/models/recommendation.py
 database/models/remediation.py
 app/api/remediation.py
 ```
 
 ## 작업
 
-- [ ] Recommendation Model
 - [ ] Remediation Model
 - [ ] 조치 상태 관리
 - [ ] Before 상태 저장
@@ -807,7 +745,7 @@ app/api/remediation.py
 
 ---
 
-# 15. Phase 10. Verification Engine
+# 14. Phase 9. Verification
 
 ## 목표
 
@@ -842,6 +780,8 @@ sbom_verify.py
 vulnerability_verify.py
 functional_verify.py
 comparison.py
+
+core/sbom/diff.py
 ```
 
 ## 작업
@@ -888,7 +828,7 @@ Verification Passed
 
 ---
 
-# 16. Phase 11. Before / After Comparison
+# 15. Phase 10. Before / After
 
 ## 목표
 
@@ -912,7 +852,7 @@ Verification Status
 
 - [ ] Before Snapshot
 - [ ] After Snapshot
-- [ ] Diff Engine
+- [ ] Phase 9의 SBOM Diff를 재사용한 비교 집계
 - [ ] 증감 계산
 - [ ] Finding별 비교
 - [ ] Asset별 비교
@@ -920,11 +860,11 @@ Verification Status
 
 ## 완료 조건
 
-사용자가 개선 전·후 차이를 한 화면에서 확인할 수 있다.
+개선 전·후 차이를 근거와 함께 구조화 데이터로 반환한다. 화면 연결은 Phase 11에서 수행한다.
 
 ---
 
-# 17. Phase 12. Dashboard
+# 16. Phase 11. Dashboard
 
 ## 목표
 
@@ -967,7 +907,7 @@ Verification Status
 
 ---
 
-# 18. Phase 13. Final Report
+# 17. Phase 12. AI Consulting Report
 
 ## 목표
 
@@ -992,6 +932,10 @@ Before / After
 최종 상태
 ```
 
+## 구현 위치
+
+`core/consulting/report_generator.py`
+
 ## 작업
 
 - [ ] Report Data Model
@@ -1006,32 +950,105 @@ Before / After
 
 ---
 
-# 19. Phase 14. Additional Scenarios
+# 18. 공통 지원 작업
 
-첫 번째 End-to-End Pipeline이 완료된 이후에만 진행한다.
+아래 작업은 Phase 1~12의 번호를 바꾸지 않고 필요한 단계와 함께 진행한다.
+SBOM 생성·저장과 첫 Lab 연결은 실제 대상의 분석에 필요하며, 전체 통합 검증은
+첫 MVP 완료 조건이다. 파서는 합성 fixture로 독립 검증할 수 있다.
 
-## 후보
+## SBOM 생성 및 저장
 
-- [ ] 추가 취약 Component
-- [ ] 장기 미패치 Scenario
-- [ ] EOL Component
-- [ ] Historical KEV Replay
-- [ ] Vendor Risk
-- [ ] Dependency Change Detection
-- [ ] 악성 Package Intelligence
-- [ ] Typosquatting
-- [ ] CI/CD Artifact 변경
-- [ ] Supply Chain Incident
+### 구현 위치
 
-## 원칙
+- `core/sbom/generator.py`: 생성 도구 실행
+- `scripts/generate_sbom.py`, `scripts/import_sbom.py`: core 호출
+- `database/models/`, `database/`: SBOM·Component 저장 및 마이그레이션
 
-추가 기능 때문에 MVP 안정성을 깨뜨리지 않는다.
+### 작업
+
+- [ ] SBOM 생성 도구 선정
+- [ ] SBOM 생성 Wrapper 및 도구 오류·Timeout 처리
+- [ ] SBOM / Component DB Model 및 저장
+- [ ] Asset ↔ SBOM ↔ Component 관계와 원본 출처 보존
+- [ ] 생성 → Parser → Normalizer → 저장 연동
+
+### 완료 조건과 시점
+
+Phase 2~3의 입출력 계약과 Phase 1의 자산 모델을 사용한다. 실제 Lab 분석을 연결하기
+전에 생성·저장을 준비하고, Phase 8에서 Before를 보존하며 Phase 9에서 재생성·재분석에
+사용한다. 도구 실행과 저장 테스트를 통과해야 지원 작업 완료로 판단한다.
 
 ---
 
-# 20. Phase 15. End-to-End Integration Test
+## 첫 번째 Lab 및 시연 준비
 
-## 전체 흐름
+### 목표
+
+하나의 취약 환경을 만들어 전체 Pipeline을 실제로 검증한다.
+
+### 기본 구조
+
+```text
+labs/<lab-name>/
+├── README.md
+├── vulnerable/
+└── patched/
+```
+
+### Lab README 필수 내용
+
+```text
+취약 Component
+취약 Version
+관련 CVE
+Lab 목적
+개선 방법
+Verification 방법
+실행 방법
+```
+
+### 첫 번째 Lab 선정 기준
+
+- SBOM에서 Component 식별이 명확할 것
+- CVE Mapping이 명확할 것
+- 취약 버전 / 개선 버전 구분이 명확할 것
+- Before / After 검증이 가능할 것
+- 실습환경에서 안전하게 재현 가능할 것
+
+### 작업
+
+- [ ] 첫 Lab 선정
+- [ ] vulnerable 환경 작성
+- [ ] patched 환경 작성
+- [ ] SBOM 생성 확인
+- [ ] CVE Mapping 확인
+- [ ] Risk 계산 확인
+- [ ] 개선 시나리오 작성
+- [ ] Verification 방법 작성
+
+### 완료 조건
+
+```text
+Vulnerable
+↓
+Detection
+↓
+Recommendation
+↓
+Patched
+↓
+Re-scan
+↓
+Verification
+```
+
+전체 흐름이 가능하다.
+
+---
+
+## End-to-End Integration Test
+
+### 전체 흐름
 
 ```text
 Asset 등록
@@ -1065,7 +1082,7 @@ Before / After
 Report
 ```
 
-## 확인사항
+### 확인사항
 
 - [ ] 전체 Pipeline 실행 가능
 - [ ] 동일 입력 결과 재현 가능
@@ -1082,7 +1099,30 @@ Report
 
 ---
 
-# 21. 우선순위
+# 19. MVP 이후 확장: Additional Scenarios
+
+첫 번째 End-to-End Pipeline이 완료된 이후에만 진행한다.
+
+## 후보
+
+- [ ] 추가 취약 Component
+- [ ] 장기 미패치 Scenario
+- [ ] EOL Component
+- [ ] Historical KEV Replay
+- [ ] Vendor Risk
+- [ ] Dependency Change Detection
+- [ ] 악성 Package Intelligence
+- [ ] Typosquatting
+- [ ] CI/CD Artifact 변경
+- [ ] Supply Chain Incident
+
+## 원칙
+
+추가 기능 때문에 MVP 안정성을 깨뜨리지 않는다.
+
+---
+
+# 20. 우선순위
 
 ## Must Have
 
@@ -1121,48 +1161,37 @@ Report
 
 ---
 
-# 22. 개발 의존관계
+# 21. 개발 의존관계
 
-기능은 아래 의존관계를 따른다.
+아래는 모듈 연결 순서다. 개발 Phase는 AGENTS.md §24의 1~12를 따른다.
 
 ```text
-Asset Model
-   │
-   ├──────────────┐
-   │              │
-   ↓              ↓
-SBOM Engine   Asset Context
-   │              │
-   ↓              │
-Vulnerability     │
-Intelligence      │
-   │              │
-   └──────┬───────┘
-          ↓
-      Risk Engine
-          ↓
-        Finding
-          ↓
-  Security Control
-          ↓
-    AI Consulting
-          ↓
-      Remediation
-          ↓
-     Verification
-          ↓
-    Before / After
-          ↓
-       Dashboard
-          ↓
-        Report
+Phase 1 Asset Model / Context
+                +
+기존 SBOM 또는 생성 Wrapper (지원 작업)
+                ↓
+Phase 2 SBOM Parser → Phase 3 Component Normalizer
+                ↓
+Phase 4 CVE / CVSS / CWE / KEV Matcher
+                ↓ + Asset Context
+Phase 5 Rule-based Risk Engine → Phase 6 Finding 생성
+                ↓
+Phase 7 Recommendation (보안통제 매핑 → 개선안·검증계획)
+                ↓
+Phase 8 Remediation → Phase 9 Verification
+                ↓
+Phase 10 Before / After → Phase 11 Dashboard
+                ↓
+Phase 12 AI Consulting Report
 ```
 
-이 의존관계를 무시하고 후속 기능부터 구현하지 않는다.
+SBOM·Component 저장은 생성·정규화 결과와 자산을 연결한다. 첫 Lab의 개선 전후 자료와
+재생성·재분석 기능은 Verification에 필요하다. 모듈별 테스트를 먼저 실행하고 기능을
+연결할 때마다 통합 테스트를 수행한다. 첫 End-to-End 통과 전에는 추가 Lab을 늘리지 않는다.
 
 ---
 
-# 23. 권장 Branch 전략
+# 22. 권장 Branch 전략
 
 예시:
 
@@ -1196,7 +1225,7 @@ fix/verification-result
 
 ---
 
-# 24. 각 Phase 완료 시 확인할 내용
+# 23. 각 Phase 완료 시 확인할 내용
 
 각 Phase 완료 전에 아래를 확인한다.
 
@@ -1212,7 +1241,7 @@ fix/verification-result
 
 ---
 
-# 25. 프로젝트 완료 기준
+# 24. 프로젝트 완료 기준
 
 프로젝트는 단순히 취약점을 탐지하는 것으로 완료되지 않는다.
 

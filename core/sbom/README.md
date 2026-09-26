@@ -1,7 +1,8 @@
-﻿# SBOM Parser
+# SBOM Parser
 
-AGENTS.md의 Phase 2 구현 범위는 CycloneDX JSON 파싱이다. 생성 Wrapper,
-정규화, DB 저장 및 Before/After 비교는 후속 작업이다.
+AGENTS.md와 ROADMAP.md의 Phase 2는 SBOM Parser이며 초기 지원은 CycloneDX JSON이다.
+정규화는 Phase 3, 검증용 SBOM Diff는 Phase 9, 비교 집계는 Phase 10에서 담당한다.
+생성 Wrapper와 DB 저장은 ROADMAP.md의 공통 지원 작업으로 관리한다.
 
 ## 사용
 
