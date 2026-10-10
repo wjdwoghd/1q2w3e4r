@@ -81,34 +81,15 @@ class AssetContext:
         object.__setattr__(self, "owner", _required_text(self.owner, "owner"))
 
     @classmethod
-    def create(
-        cls,
-        *,
-        name: object,
-        environment: object,
-        internet_exposed: object,
-        business_criticality: object,
-        customer_information: object,
-        credit_information: object,
-        patch_status: object,
-        vendor: object,
-        owner: object,
-    ) -> "AssetContext":
-        return cls(
-            name=_required_text(name, "name"),
-            environment=_enum(environment, Environment, "environment"),
-            internet_exposed=_boolean(internet_exposed, "internet_exposed"),
-            business_criticality=_enum(
-                business_criticality, BusinessCriticality, "business_criticality"
-            ),
-            customer_information=_boolean(
-                customer_information, "customer_information"
-            ),
-            credit_information=_boolean(credit_information, "credit_information"),
-            patch_status=_enum(patch_status, PatchStatus, "patch_status"),
-            vendor=_required_text(vendor, "vendor"),
-            owner=_required_text(owner, "owner"),
-        )
+    def create(cls, **values: object) -> "AssetContext":
+        required = set(cls.__dataclass_fields__)
+        missing = required - values.keys()
+        if missing:
+            raise AssetContextError(f"missing asset context fields: {', '.join(sorted(missing))}")
+        unknown = values.keys() - required
+        if unknown:
+            raise AssetContextError(f"unknown asset context fields: {', '.join(sorted(unknown))}")
+        return cls(**values)
 
     @property
     def is_production(self) -> bool:

@@ -21,6 +21,13 @@ class AssetContextTests(unittest.TestCase):
         for field in ("name", "vendor", "owner"):
             with self.subTest(field=field), self.assertRaises(AssetContextError):
                 AssetContext.create(**{**VALID, field: " "})
+        for field in VALID:
+            with self.subTest(missing=field), self.assertRaisesRegex(AssetContextError, field):
+                AssetContext.create(**{key: value for key, value in VALID.items() if key != field})
+
+    def test_unknown_field(self):
+        with self.assertRaisesRegex(AssetContextError, "unexpected"):
+            AssetContext.create(**VALID, unexpected=True)
 
     def test_invalid_criticality(self):
         with self.assertRaisesRegex(AssetContextError, "business_criticality"):
