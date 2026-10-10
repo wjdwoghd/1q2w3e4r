@@ -41,3 +41,9 @@ class AssetContextTests(unittest.TestCase):
         for invalid in (1, "yes", None):
             with self.subTest(invalid=invalid), self.assertRaises(AssetContextError):
                 AssetContext.create(**{**VALID, "internet_exposed": invalid})
+
+    def test_direct_construction_cannot_bypass_validation(self):
+        with self.assertRaises(AssetContextError):
+            AssetContext(**{**VALID, "internet_exposed": "yes"})
+        with self.assertRaises(AssetContextError):
+            AssetContext(**{**VALID, "business_criticality": "urgent"})

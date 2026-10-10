@@ -65,6 +65,21 @@ class AssetContext:
     vendor: str
     owner: str
 
+    def __post_init__(self) -> None:
+        # Direct dataclass construction must obey the same contract as create().
+        object.__setattr__(self, "name", _required_text(self.name, "name"))
+        object.__setattr__(self, "environment", _enum(self.environment, Environment, "environment"))
+        object.__setattr__(self, "internet_exposed", _boolean(self.internet_exposed, "internet_exposed"))
+        object.__setattr__(
+            self, "business_criticality",
+            _enum(self.business_criticality, BusinessCriticality, "business_criticality"),
+        )
+        object.__setattr__(self, "customer_information", _boolean(self.customer_information, "customer_information"))
+        object.__setattr__(self, "credit_information", _boolean(self.credit_information, "credit_information"))
+        object.__setattr__(self, "patch_status", _enum(self.patch_status, PatchStatus, "patch_status"))
+        object.__setattr__(self, "vendor", _required_text(self.vendor, "vendor"))
+        object.__setattr__(self, "owner", _required_text(self.owner, "owner"))
+
     @classmethod
     def create(
         cls,

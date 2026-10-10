@@ -30,6 +30,9 @@ class SQLiteSBOMRepository:
     ) -> SBOM:
         if len(parsed.components) != len(normalized.components):
             raise SBOMRepositoryError("parsed and normalized component counts differ")
+        if any(item.source != original for item, original in
+               zip(normalized.components, parsed.components)):
+            raise SBOMRepositoryError("normalized components do not match parsed source")
         try:
             with self.connection:
                 cursor = self.connection.execute(

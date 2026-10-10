@@ -1,4 +1,5 @@
 import unittest
+from dataclasses import replace
 from pathlib import Path
 
 from core.assets.asset_service import AssetService
@@ -6,7 +7,7 @@ from core.sbom.normalizer import normalize_components
 from core.sbom.parser import parse_sbom_file
 from database.database import connect_database, initialize_database
 from database.repositories.asset_repository import SQLiteAssetRepository
-from database.repositories.sbom_repository import SQLiteSBOMRepository
+from database.repositories.sbom_repository import SQLiteSBOMRepository, SBOMRepositoryError
 from tests.unit.test_asset_context import VALID
 
 
@@ -29,3 +30,19 @@ class SBOMPersistenceTests(unittest.TestCase):
         self.assertEqual(sbom.asset_id, asset.id)
         self.assertEqual(len(components), len(parsed.components))
         self.assertEqual(components[0].source_bom_ref, parsed.components[0].bom_ref)
+
+    def test_rejects_unrelated_normalization_without_writing_snapshot(self):
+        connection = connect_database()
+        self.addCleanup(connection.close)
+        initialize_database(connection)
+        fixture = Path(__file__).resolve().parents[1] / "fixtures" / "cyclonedx.json"
+        raw = fixture.read_text(encoding="utf-8")
+        parsed = parse_sbom_file(fixture)
+        normalized = normalize_components(parsed.components)
+        unrelated = replace(normalized.components[0], source=replace(parsed.components[0], name="different"))
+        altered = replace(normalized, components=(unrelated, *normalized.components[1:]))
+        repository = SQLiteSBOMRepository(connection)
+        with self.assertRaises(SBOMRepositoryError):
+            repository.save(asset_id=1, source=str(fixture), raw_document=raw,
+                            parsed=parsed, normalized=altered)
+        self.assertEqual(connection.execute("SELECT COUNT(*) FROM sboms").fetchone()[0], 0)
