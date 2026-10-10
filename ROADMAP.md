@@ -72,10 +72,12 @@ Report
 
 ## Current Phase
 
-**최근 구현: Phase 2 - SBOM Parser (CycloneDX JSON)**
+**최근 구현: Phase 1 Asset Model 및 Phase 3 Component Normalizer**
 
-파서의 로컬 단위 테스트 14개가 통과했다. 이 상태는 Phase 1이나 생성·저장·Lab 연동의
-완료를 의미하지 않는다. 다른 단계는 해당 기능의 구현·검증 근거로 별도 갱신한다.
+Phase 1의 금융서비스·자산 등록/조회와 SQLite 저장, Context 검증이 구현되었다.
+Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정규화 규칙을 수정하여
+단위·통합 테스트를 통과했다. 공통 지원 작업으로 Syft Wrapper와 자산-SBOM-Component
+저장 경로를 추가했으나 실제 Syft 실행 및 Lab 연동은 아직 검증하지 않았다.
 
 ## Progress
 
@@ -261,20 +263,20 @@ data/assets/
 
 ## 작업
 
-- [ ] `BusinessService` Model
-- [ ] `Asset` Model
-- [ ] Asset Context Schema
-- [ ] Sample 금융서비스 데이터
-- [ ] Asset CRUD 또는 최소 등록/조회 기능
-- [ ] DB 저장
-- [ ] Validation
+- [x] `BusinessService` Model
+- [x] `Asset` Model
+- [x] Asset Context Schema
+- [x] Sample 금융서비스 데이터
+- [x] Asset CRUD 또는 최소 등록/조회 기능
+- [x] DB 저장
+- [x] Validation
 
 ## 테스트
 
-- [ ] 필수 필드 검증
-- [ ] 잘못된 Criticality 값 처리
-- [ ] Production / Development 구분
-- [ ] Internet Exposure 정상 처리
+- [x] 필수 필드 검증
+- [x] 잘못된 Criticality 값 처리
+- [x] Production / Development 구분
+- [x] Internet Exposure 정상 처리
 
 ## 완료 조건
 
@@ -332,19 +334,19 @@ Asset Context를 코드에서 안정적으로 조회할 수 있다.
 
 ## 작업
 
-- [ ] Component 이름·공급자·Package 정보 정규화 규칙
-- [ ] Version 정규화 규칙과 원본 보존
-- [ ] PURL Parsing 및 정규화
-- [ ] 중복 Component 식별·처리 정책
-- [ ] 누락·지원하지 않는 입력 처리
-- [ ] 후속 Matcher 및 저장 계층에 전달할 Interface 정의
+- [x] Component 이름·공급자·Package 정보 정규화 규칙
+- [x] Version 정규화 규칙과 원본 보존
+- [x] PURL Parsing 및 정규화
+- [x] 중복 Component 식별·처리 정책
+- [x] 누락·지원하지 않는 입력 처리
+- [x] 후속 Matcher 및 저장 계층에 전달할 Interface 정의
 
 ## 테스트
 
-- [ ] Version 정규화
-- [ ] PURL Parsing
-- [ ] 중복 및 누락 필드 처리
-- [ ] 같은 입력의 정규화 결과 재현성
+- [x] Version 정규화
+- [x] PURL Parsing
+- [x] 중복 및 누락 필드 처리
+- [x] 같은 입력의 정규화 결과 재현성
 
 ## 완료 조건
 
@@ -966,11 +968,11 @@ SBOM 생성·저장과 첫 Lab 연결은 실제 대상의 분석에 필요하며
 
 ### 작업
 
-- [ ] SBOM 생성 도구 선정
-- [ ] SBOM 생성 Wrapper 및 도구 오류·Timeout 처리
-- [ ] SBOM / Component DB Model 및 저장
-- [ ] Asset ↔ SBOM ↔ Component 관계와 원본 출처 보존
-- [ ] 생성 → Parser → Normalizer → 저장 연동
+- [x] SBOM 생성 도구 선정 (Syft)
+- [x] SBOM 생성 Wrapper 및 도구 오류·Timeout 처리 (mock 기반 검증)
+- [x] SBOM / Component DB Model 및 저장
+- [x] Asset ↔ SBOM ↔ Component 관계와 원본 출처 보존
+- [ ] 생성 → Parser → Normalizer → 저장 연동 (실제 Syft/Lab 실행 미검증)
 
 ### 완료 조건과 시점
 

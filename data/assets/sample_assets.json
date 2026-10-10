@@ -1,0 +1,19 @@
+{
+  "business_service": {
+    "name": "Internet Banking",
+    "description": "Synthetic MVP financial service"
+  },
+  "assets": [
+    {
+      "name": "Internet Banking API",
+      "environment": "production",
+      "internet_exposed": true,
+      "business_criticality": "critical",
+      "customer_information": true,
+      "credit_information": true,
+      "patch_status": "current",
+      "vendor": "Internal",
+      "owner": "Digital Banking"
+    }
+  ]
+}
