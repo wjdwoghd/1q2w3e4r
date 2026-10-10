@@ -3,6 +3,8 @@
 AGENTS.md와 ROADMAP.md의 Phase 2는 SBOM Parser이며 초기 지원은 CycloneDX JSON이다.
 정규화는 Phase 3, 검증용 SBOM Diff는 Phase 9, 비교 집계는 Phase 10에서 담당한다.
 생성 Wrapper와 DB 저장은 ROADMAP.md의 공통 지원 작업으로 관리한다.
+Wrapper는 Syft 출력 형식을 `cyclonedx-json@1.6`으로 고정한다. Syft 1.54.1의
+기본 출력(1.7)은 현재 Parser의 지원 범위를 벗어나기 때문이다.
 
 ## 사용
 
@@ -50,3 +52,8 @@ python -m unittest discover -s tests/unit -v
 
 `tests/fixtures/cyclonedx.json`은 파서 테스트용 합성 자료다. 구성요소·버전·해시는
 실제 설치 상태나 스캐너 결과가 아니며 취약점 매칭 근거로 사용하지 않는다.
+
+2026-10-10 Windows Syft 1.54.1에서 저장소의 `requirements.txt`만 격리된 임시
+폴더에 복사해 실제 생성 → 파싱 → 정규화 → 메모리 SQLite 저장을 실행했다.
+CycloneDX 1.6의 Component 2개를 추출하고 2개를 저장했다. 이 검증은 첫 Lab의
+취약점 탐지 또는 개선 검증을 대신하지 않는다.

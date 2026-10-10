@@ -13,5 +13,13 @@ Phase 3 정규화는 core/sbom/normalizer.py에서 담당한다. 생성 도구 �
 SBOM·Component 저장은 ROADMAP.md의 공통 지원 작업이며 저장은 database 계층을 거친다.
 Phase 번호와 범위는 AGENTS.md §24를 기준으로 ROADMAP.md와 함께 유지한다.
 
+Phase 4는 `NormalizedComponent.package_key`가 제공하는 충돌 없는 버전 PURL만
+OSV 조회에 사용한다. OSV가 반환한 CVE 식별자를 NVD에서 검증하고 CVSS·CWE를 읽으며,
+CISA KEV 카탈로그의 전체 스냅샷으로 등록 여부를 확인한다. 조회 실패와 미등록은
+서로 다른 상태다. CPE를 PURL에서 추측해 변환하지 않으며, 현재 취약점 결과는
+DB에 저장하지 않는다. 각 외부 클라이언트의 단일 실조회는 확인했으나 전체 매칭의
+실서비스 호출은 아직 검증하지 않았다. Syft 1.54.1의 격리 샘플 생성·저장 경로는
+검증했으며 첫 Lab 연동은 후속 작업이다.
+
 지원 형식, 데이터 계약, 누락·중복 처리 및 테스트 명령은
 [SBOM Parser 문서](../core/sbom/README.md)를 참조한다.

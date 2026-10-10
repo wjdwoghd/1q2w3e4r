@@ -16,7 +16,7 @@ class SBOMGeneratorTests(unittest.TestCase):
             result = generate_cyclonedx_json(Path(directory), timeout_seconds=5)
             self.assertEqual(result.tool, "syft")
             self.assertIn("CycloneDX", result.content)
-            self.assertEqual(run.call_args.args[0][-2:], ["-o", "cyclonedx-json"])
+            self.assertEqual(run.call_args.args[0][-2:], ["-o", "cyclonedx-json@1.6"])
 
     def test_missing_source_and_timeout(self):
         with self.assertRaises(SBOMGenerationError):

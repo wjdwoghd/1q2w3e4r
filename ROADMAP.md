@@ -72,12 +72,16 @@ Report
 
 ## Current Phase
 
-**최근 구현: Phase 1 Asset Model 및 Phase 3 Component Normalizer**
+**최근 구현: Phase 1 Asset Model, Phase 3 Component Normalizer 및 Phase 4 매칭·조회 경로(일부)**
 
 Phase 1의 금융서비스·자산 등록/조회와 SQLite 저장, Context 검증이 구현되었다.
 Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정규화 규칙을 수정하여
 단위·통합 테스트를 통과했다. 공통 지원 작업으로 Syft Wrapper와 자산-SBOM-Component
-저장 경로를 추가했으나 실제 Syft 실행 및 Lab 연동은 아직 검증하지 않았다.
+저장 경로를 추가했다. Phase 4는 버전이 명확한 PURL을 OSV에 조회하고 CVE를 NVD와
+CISA KEV로 확인하는 경로를 fixture로 검증했다. Log4j Core 2.14.1에 대한 각
+클라이언트의 실제 단일 조회도 성공했다. Syft 1.54.1로 격리된 로컬 샘플의
+생성 → Parser → Normalizer → DB 저장을 확인했다. 취약점 결과 DB 저장과 첫
+Lab 연동은 아직 검증하지 않았다.
 
 ## Progress
 
@@ -387,27 +391,27 @@ eol_client.py
 
 ## 작업
 
-- [ ] Component Normalizer 연동
-- [ ] PURL / CPE Mapping 방식 결정
-- [ ] CVE 조회
-- [ ] CVSS 조회
-- [ ] CWE 조회
-- [ ] CISA KEV 조회
+- [x] Component Normalizer 연동 (NormalizedComponent 입력)
+- [x] PURL / CPE Mapping 방식 결정 (검증된 버전 PURL → OSV; CPE 자동 변환 제외)
+- [x] CVE 조회 (OSV 결과의 단일 CVE 식별자를 NVD에서 확인)
+- [x] CVSS 조회 (NVD에 값이 없으면 `None`)
+- [x] CWE 조회 (NVD에 값이 없으면 빈 목록)
+- [x] CISA KEV 조회 (완전한 카탈로그 스냅샷에서 등록 여부 확인)
 - [ ] EOL 조회 (확장 범위; Phase 4 필수 완료 조건에서 제외)
-- [ ] Component ↔ CVE Matching
+- [x] Component ↔ CVE Matching (미매칭·모호성·외부 오류 상태 분리)
 - [ ] 결과 DB 저장
-- [ ] External API Error Handling
-- [ ] Timeout / Retry
-- [ ] Cache 전략 검토
+- [x] External API Error Handling (HTTP·429·응답 검증)
+- [x] Timeout / Retry (제한된 재시도)
+- [x] Cache 전략 검토 (현재 미구현; 반복 조회용 배치/스냅샷 재사용은 후속 설계)
 
 ## 테스트
 
-- [ ] CVE Matching 성공
-- [ ] CVE 없음
-- [ ] KEV 등록 / 미등록
-- [ ] API 응답 실패
-- [ ] 잘못된 Component 입력
-- [ ] CVSS 누락 처리
+- [x] CVE Matching 성공
+- [x] CVE 없음
+- [x] KEV 등록 / 미등록
+- [x] API 응답 실패
+- [x] 잘못된 Component 입력과 모호한 식별자
+- [x] CVSS / CWE 누락 처리
 
 ## 완료 조건
 
@@ -423,7 +427,10 @@ CWE
 KEV
 ```
 
-연결이 가능하다.
+연결 경로는 오프라인 fixture로 검증했고, OSV·NVD·CISA 클라이언트의 실제 단일
+조회도 확인했다. 전체 매칭의 실서비스 호출과 결과 DB 저장 전이므로 Phase 4
+전체 완료로 표시하지 않는다. 계약·출처·한계는
+[취약점 모듈 문서](core/vulnerability/README.md)를 참조한다.
 
 ---
 
@@ -972,7 +979,10 @@ SBOM 생성·저장과 첫 Lab 연결은 실제 대상의 분석에 필요하며
 - [x] SBOM 생성 Wrapper 및 도구 오류·Timeout 처리 (mock 기반 검증)
 - [x] SBOM / Component DB Model 및 저장
 - [x] Asset ↔ SBOM ↔ Component 관계와 원본 출처 보존
-- [ ] 생성 → Parser → Normalizer → 저장 연동 (실제 Syft/Lab 실행 미검증)
+- [x] 생성 → Parser → Normalizer → 저장 연동 (Syft 1.54.1 격리 샘플 검증)
+- [x] 생성 Wrapper → Parser → Normalizer → DB 저장 모의 연동 테스트
+- [x] 격리된 로컬 샘플로 실제 Syft 생성 및 저장 확인 (2개 Component)
+- [ ] 첫 Lab에서 생성·저장 및 취약점 재분석 검증
 
 ### 완료 조건과 시점
 

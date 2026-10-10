@@ -29,7 +29,8 @@ def generate_cyclonedx_json(
         raise SBOMGenerationError(f"SBOM source does not exist: {source_path}")
     if timeout_seconds <= 0:
         raise SBOMGenerationError("timeout_seconds must be positive")
-    command = [executable, str(source_path), "-o", "cyclonedx-json"]
+    # Pin to the parser's supported schema; Syft's default advances over time.
+    command = [executable, str(source_path), "-o", "cyclonedx-json@1.6"]
     try:
         result = subprocess.run(
             command, capture_output=True, text=True, encoding="utf-8",
