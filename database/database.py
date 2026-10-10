@@ -51,6 +51,31 @@ CREATE TABLE IF NOT EXISTS components (
     UNIQUE (sbom_id, position),
     FOREIGN KEY (sbom_id) REFERENCES sboms(id) ON DELETE CASCADE
 );
+CREATE TABLE IF NOT EXISTS vulnerability_match_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    component_id INTEGER NOT NULL,
+    analysis_key TEXT NOT NULL CHECK (length(trim(analysis_key)) > 0),
+    status TEXT NOT NULL CHECK (status IN
+        ('matched', 'no_match', 'unmatched', 'ambiguous', 'error')),
+    component_purl TEXT,
+    reasons_json TEXT NOT NULL,
+    osv_query_json TEXT,
+    kev_snapshot_json TEXT,
+    recorded_at TEXT NOT NULL,
+    payload_digest TEXT NOT NULL,
+    UNIQUE (component_id, analysis_key),
+    FOREIGN KEY (component_id) REFERENCES components(id) ON DELETE RESTRICT
+);
+CREATE TABLE IF NOT EXISTS vulnerability_match_evidence (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_id INTEGER NOT NULL,
+    cve_id TEXT NOT NULL CHECK (cve_id GLOB 'CVE-[0-9][0-9][0-9][0-9]-*'),
+    evidence_json TEXT NOT NULL,
+    UNIQUE (run_id, cve_id),
+    FOREIGN KEY (run_id) REFERENCES vulnerability_match_runs(id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_vulnerability_match_evidence_cve
+    ON vulnerability_match_evidence(cve_id);
 """
 
 

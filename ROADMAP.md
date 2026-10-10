@@ -72,7 +72,7 @@ Report
 
 ## Current Phase
 
-**최근 구현: Phase 1 Asset Model, Phase 3 Component Normalizer 및 Phase 4 매칭·조회 경로(일부)**
+**최근 구현: Phase 1 Asset Model, Phase 3 Component Normalizer 및 Phase 4 매칭·저장·조회 경로**
 
 Phase 1의 금융서비스·자산 등록/조회와 SQLite 저장, Context 검증이 구현되었다.
 Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정규화 규칙을 수정하여
@@ -80,8 +80,10 @@ Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정�
 저장 경로를 추가했다. Phase 4는 버전이 명확한 PURL을 OSV에 조회하고 CVE를 NVD와
 CISA KEV로 확인하는 경로를 fixture로 검증했다. Log4j Core 2.14.1에 대한 각
 클라이언트의 실제 단일 조회도 성공했다. Syft 1.54.1로 격리된 로컬 샘플의
-생성 → Parser → Normalizer → DB 저장을 확인했다. 취약점 결과 DB 저장과 첫
-Lab 연동은 아직 검증하지 않았다.
+생성 → Parser → Normalizer → DB 저장을 확인했다. Phase 4 결과는 구성요소 발생별
+분석 실행과 CVE 증거로 저장·조회하며, 격리된 Log4j Core 2.14.1 로컬 샘플에서
+실제 OSV → NVD → CISA KEV → DB 저장·조회를 확인했다. 첫 Lab 연동은 아직
+검증하지 않았다.
 
 ## Progress
 
@@ -399,7 +401,7 @@ eol_client.py
 - [x] CISA KEV 조회 (완전한 카탈로그 스냅샷에서 등록 여부 확인)
 - [ ] EOL 조회 (확장 범위; Phase 4 필수 완료 조건에서 제외)
 - [x] Component ↔ CVE Matching (미매칭·모호성·외부 오류 상태 분리)
-- [ ] 결과 DB 저장
+- [x] 결과 DB 저장·조회 (구성요소 발생별 실행·CVE 증거·재분석 이력)
 - [x] External API Error Handling (HTTP·429·응답 검증)
 - [x] Timeout / Retry (제한된 재시도)
 - [x] Cache 전략 검토 (현재 미구현; 반복 조회용 배치/스냅샷 재사용은 후속 설계)
@@ -412,6 +414,7 @@ eol_client.py
 - [x] API 응답 실패
 - [x] 잘못된 Component 입력과 모호한 식별자
 - [x] CVSS / CWE 누락 처리
+- [x] 결과 저장·조회, 동일 실행 중복 저장, 재분석 이력, DB 제약·트랜잭션 (오프라인 fixture)
 
 ## 완료 조건
 
@@ -427,9 +430,10 @@ CWE
 KEV
 ```
 
-연결 경로는 오프라인 fixture로 검증했고, OSV·NVD·CISA 클라이언트의 실제 단일
-조회도 확인했다. 전체 매칭의 실서비스 호출과 결과 DB 저장 전이므로 Phase 4
-전체 완료로 표시하지 않는다. 계약·출처·한계는
+연결 경로는 오프라인 fixture로 검증했고, 격리된 로컬 SBOM 샘플에서 전체 매칭의
+실서비스 호출과 결과 DB 저장·조회를 확인했다. KEV 스냅샷을 실행당 한 번 저장하는
+최종 변경 후 전체 테스트 73개와 실조회 재실행도 통과했다. EOL은 확장 범위이며 첫
+Lab 연동은 공통 지원 작업에 남아 있다. 계약·출처·한계는
 [취약점 모듈 문서](core/vulnerability/README.md)를 참조한다.
 
 ---
