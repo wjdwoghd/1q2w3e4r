@@ -33,3 +33,22 @@ Phase 4의 `MatchResult`는 `vulnerability_match_runs`에 구성요소 발생 ID
 처리한다. 구성요소별·CVE별 이력 조회를 제공한다. 기존 DB에는
 `database/migrations/0002_vulnerability_matches.sql`을 적용할 수 있다. 운영 DB
 제품과 자동 마이그레이션 도구는 아직 선정하지 않았다.
+
+## Phase 6 Finding
+
+`0003_findings.sql`은 기존 테이블을 바꾸지 않고 `findings`,
+`finding_observations`, `finding_status_history`를 추가한다. `findings`의
+`UNIQUE(asset_id, cve_id)`가 관리 단위를 고정한다. 같은 CVE가 한 자산의 여러
+구성요소에서 탐지되어도 Finding은 하나이며, 매칭 증거 행별 관측은 각각 남는다.
+`finding_observations.match_evidence_id`는 고유 FK다. 관측은 매칭 실행 ID·분석 키·
+구성요소 ID에 연결되어 OSV·NVD·KEV 원본 증거를 역추적할 수 있고, 당시의
+`RiskResult` 및 `AssetContext`를 JSON 스냅샷으로 보존한다. 같은 매칭 증거의
+재처리는 멱등이며 위험 결과나 Context가 달라지면 거부한다. 새 분석 키는 별도
+매칭 실행·증거와 새 관측을 만든다. DB 트리거도 관측의 증거 CVE와 원본
+구성요소 소속 자산이 Finding의 CVE·자산과 일치하는지 검사한다.
+
+상태는 현재 `open`만 DB CHECK와 Enum으로 허용한다. Finding 최초 생성 시
+`finding_status_history`에 Open 이벤트를 한 번 기록한다. 이후 상태 전이는
+Phase 7~9에서 증거 및 전이 규칙과 함께 설계한다. 따라서 Phase 6은 위험 감소나
+검증 성공을 상태로 기록하지 않는다. 여러 CVE의 저장은 한 트랜잭션이며 중간
+제약 오류 시 Finding·관측·상태 이력 모두 롤백한다.

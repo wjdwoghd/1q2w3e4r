@@ -25,3 +25,8 @@ Syft 1.54.1의 격리 샘플 생성·저장 경로도 검증했으며 첫 Lab �
 
 지원 형식, 데이터 계약, 누락·중복 처리 및 테스트 명령은
 [SBOM Parser 문서](../core/sbom/README.md)를 참조한다.
+
+Phase 6은 `core/findings/service.py`가 저장된 Phase 4 매칭 실행을 읽고 자산과
+구성요소 소속 관계를 확인한 다음, Phase 5 위험 엔진으로 CVE별 점수를 계산한다.
+`database/repositories/finding_repository.py`가 Finding, 분석 관측, 초기 상태 이력을
+한 트랜잭션으로 저장한다. API나 Dashboard 연결은 Phase 11 범위다.

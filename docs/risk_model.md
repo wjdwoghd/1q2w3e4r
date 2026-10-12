@@ -41,4 +41,5 @@ P1은 심각한 기술적 취약점과 실제 악용 또는 여러 높은 영향
 - 자산 맥락이 없거나 잘못되면 거부한다. 패치 상태 `unknown`은 패치 가산 없이 `unassessed_factors`에 `patch_status`를 기록한다. 이는 `current`와 동의어가 아니다.
 - EOL은 검증된 입력이 없으므로 항상 `unassessed_factors`에 기록한다. EOL이 `False`라고 추정하지 않는다.
 
-현재 범위는 순수 계산 로직과 오프라인 검증이다. Finding 생성, DB 저장, 화면 표시는 다음 단계의 작업이다.
+Phase 5 계산은 순수 함수로 유지한다. Phase 6은 저장된 MatchResult와 자산 Context로
+이 함수를 호출하고 RiskResult를 Finding 관측에 보존한다. 화면 표시는 후속 단계다.

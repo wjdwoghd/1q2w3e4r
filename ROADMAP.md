@@ -72,7 +72,7 @@ Report
 
 ## Current Phase
 
-**최근 구현: Phase 1 Asset Model, Phase 3 Component Normalizer 및 Phase 4 매칭·저장·조회 경로**
+**최근 구현: Phase 6 Finding 생성·저장·조회 (Phase 5 위험 엔진 연결)**
 
 Phase 1의 금융서비스·자산 등록/조회와 SQLite 저장, Context 검증이 구현되었다.
 Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정규화 규칙을 수정하여
@@ -84,6 +84,11 @@ CISA KEV로 확인하는 경로를 fixture로 검증했다. Log4j Core 2.14.1에
 분석 실행과 CVE 증거로 저장·조회하며, 격리된 Log4j Core 2.14.1 로컬 샘플에서
 실제 OSV → NVD → CISA KEV → DB 저장·조회를 확인했다. 첫 Lab 연동은 아직
 검증하지 않았다.
+
+Phase 5의 규칙 기반 CVE별 점수와 우선순위를 Phase 6 저장 서비스에 연결했다.
+검증된 매칭 실행·자산 Context로 Finding을 생성하고, 같은 자산·CVE를 한 건으로
+유지하면서 재분석 관측과 원본 증거 연결을 보존한다. 오프라인 전체 테스트 90개가
+통과했다. API·Dashboard와 첫 Lab 연동은 아직 구현·검증하지 않았다.
 
 ## Progress
 
@@ -557,8 +562,9 @@ Finding
 
 ```text
 database/models/finding.py
-core/
-app/api/findings.py
+core/findings/service.py
+database/repositories/finding_repository.py
+database/migrations/0003_findings.sql
 ```
 
 ## Finding Status
@@ -573,14 +579,22 @@ Verification Failed
 Risk Accepted
 ```
 
+Phase 6 구현은 `Open` 생성과 초기 상태 이력만 지원한다. 나머지 상태 전이와
+Recommendation·Remediation·Verification 동작은 후속 Phase 범위다.
+
+Finding 식별자는 `(asset_id, cve_id)`다. 같은 자산·CVE의 재분석은 Finding을
+재사용하고 매칭 증거 행마다 불변 관측 이력을 추가한다. 같은 매칭 실행을 다시
+처리하면 중복 관측을 만들지 않고, 동일 증거에 다른 위험 결과·자산 Context가
+들어오면 충돌로 거부한다. 매칭 실패나 Risk 계산 실패는 Finding을 생성하지 않는다.
+
 ## 작업
 
-- [ ] Finding Model
-- [ ] Finding 생성 로직
-- [ ] 중복 Finding 처리
-- [ ] Finding Status
-- [ ] Finding 조회
-- [ ] Finding History 검토
+- [x] Finding Model
+- [x] Finding 생성 로직
+- [x] 중복 Finding 처리
+- [x] Finding Status (Open 초기 상태만)
+- [x] Finding 조회
+- [x] Finding History 검토 (분석 관측·초기 상태 이력)
 
 ## 완료 조건
 
