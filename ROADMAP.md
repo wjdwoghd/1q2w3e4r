@@ -72,7 +72,7 @@ Report
 
 ## Current Phase
 
-**최근 구현: Phase 7.1 보안통제 참고용 매핑·저장·조회**
+**최근 구현: Phase 7.2 관측별 Recommendation 생성·저장·조회**
 
 Phase 1의 금융서비스·자산 등록/조회와 SQLite 저장, Context 검증이 구현되었다.
 Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정규화 규칙을 수정하여
@@ -93,7 +93,13 @@ Phase 5의 규칙 기반 CVE별 점수와 우선순위를 Phase 6 저장 서비�
 Phase 7.1은 저장된 관측별로 공식 출처가 확인된 금융규정 조항과 ISMS-P 기준 영역을
 참고용으로 연결한다. 통제 유형·출처·적용 이유·관측 사실을 보존하며 멱등 재실행과
 재분석 이력을 오프라인으로 검증했다. 전체 테스트 95개가 통과했다. 오픈소스 관리
-안내서의 통제 식별자 확인 및 Phase 7.2 이후 기능은 남아 있다.
+안내서의 통제 식별자 확인은 남아 있다.
+
+Phase 7.2는 단일 Finding 관측의 저장된 매칭·위험·자산 스냅샷과 해당 관측의 통제
+매핑으로만 AI 입력을 구성한다. 사실 영역은 코드가 작성하고 AI는 허용된 개선 조치와
+향후 검증 단계 초안을 선택한다. EOL은 미확인으로 전달한다. 엄격한 JSON Schema 요청과 로컬
+출력 검증, 관측별 멱등 저장·재분석 이력을 오프라인으로 검증했다. 전체 테스트
+105개가 통과했다. 실제 OpenAI 호출과 Lab 연동은 아직 검증하지 않았다.
 
 ## Progress
 
@@ -743,18 +749,20 @@ prompts.py
 
 ### 작업
 
-- [ ] Prompt Template
-- [ ] Structured Input
-- [ ] Structured Output
-- [ ] Hallucination 방지 규칙
-- [ ] Recommendation Model 및 저장
-- [ ] Recommendation 생성
-- [ ] Verification Plan 생성
-- [ ] AI Error 처리
+- [x] Prompt Template
+- [x] Structured Input
+- [x] Structured Output
+- [x] 허용된 사실 비주장 조치만 선택, 식별자·숫자·완료 상태 주장 차단 및 사실 영역의 코드 생성
+- [x] Recommendation Model 및 저장·조회
+- [x] Recommendation 생성
+- [x] Verification Plan 초안 생성
+- [x] AI Error·거부·응답 형식 오류 처리
 
 ### 완료 조건
 
 자동화 결과를 기반으로 설명 가능한 Recommendation을 생성한다.
+검증은 오프라인 fixture와 모의 AI 응답으로 수행했다. 현재 조치 문장의 범위는
+승인된 템플릿으로 제한되며 운영 사용 전 인간 검토가 필요하다.
 
 ---
 

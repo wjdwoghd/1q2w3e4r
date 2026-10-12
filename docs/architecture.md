@@ -37,3 +37,11 @@ Phase 7.1은 `core/compliance/controls.py`의 출처가 확인된 정적 카탈�
 증거 식별자를 확인한 뒤 한 트랜잭션으로 보존한다. 조회 결과에는 관측 ID,
 통제 문서 스냅샷, 기술적·관리적 유형, 적용 규칙, 관측 사실과 이유가 포함된다.
 이는 관련 통제의 참고용 연결이며 적용 대상 판정이나 공식 준수 판정이 아니다.
+
+Phase 7.2는 `RecommendationService`가 관측 ID를 받아 저장된 Finding, 매칭 실행,
+구성요소와 해당 관측의 통제 매핑을 검증한다. `analyzer.py`는 구조화 입력을 만들고
+`openai_client.py`는 환경 설정의 키·모델·timeout으로 Responses API의 엄격한
+Structured Outputs를 요청한다. 서비스는 AI가 허용된 사실 비주장 문장 중에서 고른
+개선 조치·Verification Plan 초안을 검사한 후 사실 영역을 코드에서 조립한다. SQL과 멱등 저장은
+`SQLiteRecommendationRepository`가 담당한다. 모델은 위험 점수·우선순위와
+검증 결과를 계산하거나 갱신하지 않는다. 실제 조치·검증·보고서 기능은 후속 단계다.
