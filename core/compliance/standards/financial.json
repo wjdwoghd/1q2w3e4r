@@ -1,0 +1,26 @@
+[
+  {
+    "key": "FIN-37-2-5-1",
+    "document_title": "전자금융감독규정",
+    "issuer": "금융위원회",
+    "edition": "금융위원회고시 제2026-29호",
+    "publication_date": "2026-07-15",
+    "identifier": "제37조의2 제5항 제1호",
+    "title": "취약점 제거 또는 상응 조치의 시행",
+    "control_type": "technical",
+    "source_url": "https://www.law.go.kr/LSW/admRulLsInfoR.do?admRulSeq=2100000282622",
+    "granularity": "clause"
+  },
+  {
+    "key": "FIN-37-2-5",
+    "document_title": "전자금융감독규정",
+    "issuer": "금융위원회",
+    "edition": "금융위원회고시 제2026-29호",
+    "publication_date": "2026-07-15",
+    "identifier": "제37조의2 제5항",
+    "title": "취약점 분석·평가에 따른 이행계획 수립·시행",
+    "control_type": "administrative",
+    "source_url": "https://www.law.go.kr/LSW/admRulLsInfoR.do?admRulSeq=2100000282622",
+    "granularity": "clause"
+  }
+]

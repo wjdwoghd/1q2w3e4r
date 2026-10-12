@@ -30,3 +30,10 @@ Phase 6은 `core/findings/service.py`가 저장된 Phase 4 매칭 실행을 읽�
 구성요소 소속 관계를 확인한 다음, Phase 5 위험 엔진으로 CVE별 점수를 계산한다.
 `database/repositories/finding_repository.py`가 Finding, 분석 관측, 초기 상태 이력을
 한 트랜잭션으로 저장한다. API나 Dashboard 연결은 Phase 11 범위다.
+
+Phase 7.1은 `core/compliance/controls.py`의 출처가 확인된 정적 카탈로그와
+`mapper.py`의 결정적 규칙을 사용한다. `ControlMappingService`는 저장된 Finding의
+각 관측을 읽어 매핑하고, `SQLiteControlMappingRepository`는 관측 소속과 원본
+증거 식별자를 확인한 뒤 한 트랜잭션으로 보존한다. 조회 결과에는 관측 ID,
+통제 문서 스냅샷, 기술적·관리적 유형, 적용 규칙, 관측 사실과 이유가 포함된다.
+이는 관련 통제의 참고용 연결이며 적용 대상 판정이나 공식 준수 판정이 아니다.

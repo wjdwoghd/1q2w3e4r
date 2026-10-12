@@ -52,3 +52,16 @@ Phase 4의 `MatchResult`는 `vulnerability_match_runs`에 구성요소 발생 ID
 Phase 7~9에서 증거 및 전이 규칙과 함께 설계한다. 따라서 Phase 6은 위험 감소나
 검증 성공을 상태로 기록하지 않는다. 여러 CVE의 저장은 한 트랜잭션이며 중간
 제약 오류 시 Finding·관측·상태 이력 모두 롤백한다.
+
+## Phase 7.1 보안통제 참고용 매핑
+
+`0004_finding_control_mappings.sql`은 기존 테이블 변경 없이 관측에 종속된
+`finding_control_mappings`를 추가한다. `observation_id` FK와
+`UNIQUE(observation_id, control_key)`가 관측별 중복을 막는다. `control_type`은
+기술적·관리적 값만 허용하고 JSON·필수 문자열에는 CHECK 제약을 적용한다.
+통제의 문서명·발행자·판본·발행일·식별자·출처 URL과 매핑 규칙·이유·관측 사실을
+저장 시점의 스냅샷으로 남긴다. 재분석은 새 관측에 새 매핑을 추가하며 과거
+매핑을 수정하지 않는다. 같은 관측·통제·내용의 재실행은 멱등이고 내용 충돌은
+거부한다. 매핑 묶음 중 한 건이라도 실패하면 전체 저장을 롤백한다.
+카탈로그 원본은 `core/compliance/standards/`의 검증된 JSON 파일이며,
+별도 가변 통제 마스터 테이블은 두지 않는다.

@@ -1,0 +1,26 @@
+[
+  {
+    "key": "ISMS-P-2.10",
+    "document_title": "정보보호 및 개인정보보호 관리체계(ISMS-P) 인증제도 안내서",
+    "issuer": "한국인터넷진흥원",
+    "edition": "2024년 7월 안내서",
+    "publication_date": "2024-07",
+    "identifier": "2.10",
+    "title": "시스템 및 서비스 보안관리",
+    "control_type": "technical",
+    "source_url": "https://isms-p.kisa.or.kr/board/file/bbs_0000000000000014/24/FILE_000000000001059/20240724145927085-1505591884.pdf",
+    "granularity": "category"
+  },
+  {
+    "key": "ISMS-P-1.2",
+    "document_title": "정보보호 및 개인정보보호 관리체계(ISMS-P) 인증제도 안내서",
+    "issuer": "한국인터넷진흥원",
+    "edition": "2024년 7월 안내서",
+    "publication_date": "2024-07",
+    "identifier": "1.2",
+    "title": "위험 관리",
+    "control_type": "administrative",
+    "source_url": "https://isms-p.kisa.or.kr/board/file/bbs_0000000000000014/24/FILE_000000000001059/20240724145927085-1505591884.pdf",
+    "granularity": "category"
+  }
+]

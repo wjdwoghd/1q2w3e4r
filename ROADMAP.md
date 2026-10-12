@@ -72,7 +72,7 @@ Report
 
 ## Current Phase
 
-**최근 구현: Phase 6 Finding 생성·저장·조회 (Phase 5 위험 엔진 연결)**
+**최근 구현: Phase 7.1 보안통제 참고용 매핑·저장·조회**
 
 Phase 1의 금융서비스·자산 등록/조회와 SQLite 저장, Context 검증이 구현되었다.
 Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정규화 규칙을 수정하여
@@ -87,8 +87,13 @@ CISA KEV로 확인하는 경로를 fixture로 검증했다. Log4j Core 2.14.1에
 
 Phase 5의 규칙 기반 CVE별 점수와 우선순위를 Phase 6 저장 서비스에 연결했다.
 검증된 매칭 실행·자산 Context로 Finding을 생성하고, 같은 자산·CVE를 한 건으로
-유지하면서 재분석 관측과 원본 증거 연결을 보존한다. 오프라인 전체 테스트 90개가
+유지하면서 재분석 관측과 원본 증거 연결을 보존한다. Phase 6 당시 오프라인 테스트 90개가
 통과했다. API·Dashboard와 첫 Lab 연동은 아직 구현·검증하지 않았다.
+
+Phase 7.1은 저장된 관측별로 공식 출처가 확인된 금융규정 조항과 ISMS-P 기준 영역을
+참고용으로 연결한다. 통제 유형·출처·적용 이유·관측 사실을 보존하며 멱등 재실행과
+재분석 이력을 오프라인으로 검증했다. 전체 테스트 95개가 통과했다. 오픈소스 관리
+안내서의 통제 식별자 확인 및 Phase 7.2 이후 기능은 남아 있다.
 
 ## Progress
 
@@ -649,13 +654,24 @@ controls.py
 standards/
 ```
 
+### 구현 상태
+
+Phase 6의 불변 `finding_observations`에 매핑을 연결한다. 동일 관측·통제는 같은
+근거일 때 재사용하고, 다른 근거로 재처리하면 충돌로 거부한다. 새 분석 관측은 별도
+매핑으로 저장하며 당시의 통제 문서 정보·규칙·관측 사실·이유를 보존한다.
+현재 데이터는 전자금융감독규정 제37조의2 제5항 및 제1호와 ISMS-P 안내서의
+확인된 **기준 영역** 1.2·2.10에 한정된다. ISMS-P 영역은 개별 세부 통제나
+준수 요건으로 해석하지 않는다. 금융분야 오픈소스 관리 가이드의 검증 가능한
+통제 식별자·원문을 확보하지 못해 매핑 데이터에 포함하지 않았다.
+
 ### 작업
 
-- [ ] Security Control Schema
-- [ ] Control Dataset
-- [ ] Finding ↔ Control Mapping
-- [ ] Technical / Administrative 구분
-- [ ] Mapping 근거 저장
+- [x] Security Control Schema (출처 메타데이터와 유형)
+- [x] 검증된 범위의 Control Dataset (금융규정 조항·ISMS-P 기준 영역)
+- [x] Finding 관측 ↔ Control Mapping
+- [x] Technical / Administrative 구분
+- [x] Mapping 이유·관측 근거·통제 스냅샷 저장 및 조회
+- [ ] 금융분야 오픈소스 관리 가이드의 공식 통제 원문 확인 및 데이터 추가
 
 ### 완료 조건
 
