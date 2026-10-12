@@ -452,7 +452,7 @@ Lab 연동은 공통 지원 작업에 남아 있다. 계약·출처·한계는
 - 모든 계산 근거 추적 가능
 - CVSS와 내부 Priority를 구분
 
-## 초기 Risk Factor 후보
+## 구현된 Risk Factor (규칙 버전 1.0)
 
 ```text
 CVSS
@@ -460,10 +460,11 @@ CISA KEV
 Production 여부
 Internet Exposure
 Business Criticality
-EOL 여부
-Patch Delay
+패치 기한 초과 여부 (`overdue`)
 Credit Information 처리 여부
 ```
+
+EOL은 Phase 4의 검증된 입력이 없어 점수에서 제외하고 미평가로 표시한다. 패치 지연 **일수**는 입력에 없으므로 추정하지 않는다. 점수와 정책 근거는 [위험 모델 문서](docs/risk_model.md)를 따른다.
 
 ## 구현 위치
 
@@ -483,48 +484,54 @@ KEV = YES          +30
 Internet Exposure  +15
 Production         +10
 Critical Service   +10
-EOL                 +10
+Patch Overdue       +5
+Credit Information  +5
 ```
 
 ## 결과 예시
 
 ```json
 {
+  "cve_id": "CVE-2021-44228",
+  "cvss_score": 9.8,
   "score": 95,
   "priority": "P1",
-  "reasons": [
-    "CVSS >= 9.0: +30",
-    "CISA KEV: +30",
-    "Internet Exposure: +15",
-    "Production: +10",
-    "Critical Service: +10"
-  ]
+  "applied_rules": [
+    {"factor": "cvss", "reason": "CVSS >= 9.0", "points": 30},
+    {"factor": "kev", "reason": "CISA KEV registered", "points": 30},
+    {"factor": "internet_exposure", "reason": "Internet exposed", "points": 15},
+    {"factor": "production", "reason": "Production environment", "points": 10},
+    {"factor": "business_criticality", "reason": "Critical service", "points": 10}
+  ],
+  "unassessed_factors": ["eol"],
+  "rule_version": "1.0"
 }
 ```
 
 ## 작업
 
-- [ ] Risk Factor 확정
-- [ ] Weight 정의
-- [ ] `rules.py`
-- [ ] `engine.py`
-- [ ] `priority.py`
-- [ ] P1 / P2 / P3 / P4 Threshold 확정
-- [ ] 계산 근거 반환
-- [ ] Rule Version 관리 검토
+- [x] 검증된 입력으로 계산 가능한 Risk Factor 확정 (EOL 제외)
+- [x] Weight 정의
+- [x] `rules.py`
+- [x] `engine.py`
+- [x] `priority.py`
+- [x] P1 / P2 / P3 / P4 Threshold 확정
+- [x] 계산 근거 및 미평가 요소 반환
+- [x] Rule Version `1.0` 결과 포함
 
 ## 테스트
 
-- [ ] 동일 입력 동일 결과
-- [ ] Boundary Test
-- [ ] KEV 영향 확인
-- [ ] Internet Exposure 영향 확인
-- [ ] Business Criticality 영향 확인
-- [ ] Missing Context 처리
+- [x] 동일 입력 동일 결과
+- [x] Boundary Test
+- [x] KEV 영향 확인
+- [x] Internet Exposure 영향 확인
+- [x] Business Criticality 영향 확인
+- [x] Missing Context 처리
+- [x] 비성공 매칭·CVSS 누락·KEV 불일치 거부
 
 ## 완료 조건
 
-Priority와 그 이유를 모두 반환한다.
+CVE별 Priority, 총점, 적용 규칙과 점수별 이유, 미평가 요소를 반환한다. Phase 6 Finding 생성과 DB 저장은 포함하지 않는다.
 
 ---
 
