@@ -47,10 +47,9 @@ Phase 4의 `MatchResult`는 `vulnerability_match_runs`에 구성요소 발생 ID
 매칭 실행·증거와 새 관측을 만든다. DB 트리거도 관측의 증거 CVE와 원본
 구성요소 소속 자산이 Finding의 CVE·자산과 일치하는지 검사한다.
 
-상태는 현재 `open`만 DB CHECK와 Enum으로 허용한다. Finding 최초 생성 시
-`finding_status_history`에 Open 이벤트를 한 번 기록한다. 이후 상태 전이는
-Phase 7~9에서 증거 및 전이 규칙과 함께 설계한다. 따라서 Phase 6은 위험 감소나
-검증 성공을 상태로 기록하지 않는다. 여러 CVE의 저장은 한 트랜잭션이며 중간
+Finding 최초 생성 시 `finding_status_history`에 Open 이벤트를 한 번 기록한다.
+Phase 8은 `recommendation_created`, `remediation_applied`를 DB CHECK와 Enum에
+추가했다. Verification 상태는 아직 허용하지 않는다. 여러 CVE의 저장은 한 트랜잭션이며 중간
 제약 오류 시 Finding·관측·상태 이력 모두 롤백한다.
 
 ## Phase 7.1 보안통제 참고용 매핑
@@ -73,3 +72,19 @@ FK가 중복 생성을 막고, 입력 SHA-256·모델명·구조화 입력·구�
 같은 관측의 입력이 같으면 기존 결과를 반환하며 내용이 다른 입력은 충돌로 거부한다.
 새 분석 관측은 별도 행을 만들므로 과거 입력과 개선안이 보존된다. JSON 유효성,
 필수 값과 FK는 DB에서도 검사한다. AI 출력 검증이나 API 실패 시에는 행을 쓰지 않는다.
+
+## Phase 8 Remediation
+
+`0006_remediations.sql`은 Finding 및 상태 이력의 CHECK를 좁게 확장하고 기존 Open
+행과 ID를 보존한다. `remediations`는 Finding·Recommendation·관측 FK, 조치 키,
+계획 내용·담당자·생성 시점 및 Before JSON을 저장한다. Before에는 당시 구성요소
+ID·이름·버전·PURL, CVE, Risk 점수·Priority·근거·규칙 버전과 관측 출처가 있다.
+`UNIQUE(recommendation_id, action_key)`가 중복 계획을 막고 트리거가 소속 관계 및
+계획의 수정·삭제를 제한한다. 새 분석 관측은 별도 Recommendation과 조치로 남는다.
+
+`remediation_applications`는 조치당 한 행으로 실제 수행 내용·담당자·시간대가 있는
+수행 시점·증거 유형·참조·출처를 보존한다. 비어 있는 증거와 미지원 유형은 거부하고
+적용 기록의 수정·삭제도 제한한다. 계획과 적용 기록, Finding 상태 및 상태 이력은
+각각 한 트랜잭션으로 갱신된다. DB 전이 트리거는 계획 없이 `Recommendation Created`,
+적용 기록 없이 `Remediation Applied`로 바꾸는 것을 거부한다. 이 증거는 수행 기록의
+출처이지 취약점 제거 증명은 아니며 독립 재분석은 Phase 9 범위다.

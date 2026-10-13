@@ -44,4 +44,13 @@ Phase 7.2는 `RecommendationService`가 관측 ID를 받아 저장된 Finding, �
 Structured Outputs를 요청한다. 서비스는 AI가 허용된 사실 비주장 문장 중에서 고른
 개선 조치·Verification Plan 초안을 검사한 후 사실 영역을 코드에서 조립한다. SQL과 멱등 저장은
 `SQLiteRecommendationRepository`가 담당한다. 모델은 위험 점수·우선순위와
-검증 결과를 계산하거나 갱신하지 않는다. 실제 조치·검증·보고서 기능은 후속 단계다.
+검증 결과를 계산하거나 갱신하지 않는다. 검증·보고서 기능은 후속 단계다.
+
+Phase 8은 `RemediationService`가 Recommendation ID, 관측 ID, Finding ID의 소속과
+저장된 분석 사실을 대조한다. `SQLiteRemediationRepository`는 계획 및 Before Snapshot을
+원자적으로 저장하며, 별도의 적용 기록에 실제 수행 내용·담당자·시점·변경 증거 유형·
+참조·출처를 추가한다. 동일 Recommendation의 조치 키는 멱등이고 계획·적용 기록은
+수정하거나 삭제할 수 없다. Finding은 계획 저장 때 `Recommendation Created`, 수행
+증거 저장 때 `Remediation Applied`로 전이하며 Open 이력은 남는다. 적용 기록은
+개선 효과 검증을 의미하지 않는다. 조치 후 재분석·After Snapshot·Verification은
+Phase 9 이후다.

@@ -590,8 +590,9 @@ Verification Failed
 Risk Accepted
 ```
 
-Phase 6 구현은 `Open` 생성과 초기 상태 이력만 지원한다. 나머지 상태 전이와
-Recommendation·Remediation·Verification 동작은 후속 Phase 범위다.
+Phase 6은 `Open` 생성과 초기 상태 이력을 구현했다. Phase 8은 조치 계획 시
+`Recommendation Created`, 수행 증거 기록 시 `Remediation Applied` 전이를 추가했다.
+기존 Open 이벤트는 유지한다. Verification 이후 상태는 후속 Phase 범위다.
 
 Finding 식별자는 `(asset_id, cve_id)`다. 같은 자산·CVE의 재분석은 Finding을
 재사용하고 매칭 증거 행마다 불변 관측 이력을 추가한다. 같은 매칭 실행을 다시
@@ -786,20 +787,26 @@ Remediation
 
 ```text
 database/models/remediation.py
-app/api/remediation.py
+database/repositories/remediation_repository.py
+core/remediation/service.py
+database/migrations/0006_remediations.sql
 ```
 
 ## 작업
 
-- [ ] Remediation Model
-- [ ] 조치 상태 관리
-- [ ] Before 상태 저장
-- [ ] 조치 내용 기록
-- [ ] After 분석과 연결
+- [x] Remediation Model (계획과 적용 기록 분리)
+- [x] 조치 상태 관리 (Planned/Applied, Finding의 두 전이)
+- [x] Before 상태 저장 (구성요소·버전·CVE·Risk 근거의 불변 스냅샷)
+- [x] 조치 내용·담당자·시점·수행 증거·출처 기록
+- [ ] After 분석과 연결 (Phase 9 이후)
 
 ## 완료 조건
 
-어떤 Finding에 어떤 개선조치가 적용되었는지 추적할 수 있다.
+Recommendation·분석 관측·Finding에 묶인 조치 계획과 증거가 있는 적용 기록을
+조회할 수 있다. 같은 조치 키의 재실행은 멱등이며 추가 조치와 재분석 이력을 보존한다.
+이 단계의 `Applied`는 수행 증거의 기록 상태로, 취약점 제거 판정이 아니다.
+오프라인 통합 테스트는 생성·조회·소속 불일치·무증거 적용 거부·상태 전이·멱등성·
+여러 조치·제약·롤백·마이그레이션을 확인한다. API 연결은 후속 작업이다.
 
 ---
 

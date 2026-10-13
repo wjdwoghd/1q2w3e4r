@@ -60,6 +60,16 @@ class SQLiteRecommendationRepository:
         ).fetchone()
         return self._record(row) if row else None
 
+    def get(self, recommendation_id: int) -> Recommendation:
+        row = self.connection.execute(
+            """SELECT p.*, o.finding_id FROM recommendations AS p
+               JOIN finding_observations AS o ON o.id = p.observation_id
+               WHERE p.id = ?""", (recommendation_id,)
+        ).fetchone()
+        if row is None:
+            raise RecommendationNotFoundError("recommendation not found")
+        return self._record(row)
+
     def list_for_finding(self, finding_id: int) -> tuple[Recommendation, ...]:
         rows = self.connection.execute(
             """SELECT p.*, o.finding_id FROM recommendations AS p

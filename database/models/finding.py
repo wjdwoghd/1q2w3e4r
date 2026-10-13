@@ -1,4 +1,4 @@
-"""Phase 6 finding snapshots; later workflow states are deliberately absent."""
+"""Finding snapshots and the supported remediation workflow states."""
 
 from __future__ import annotations
 
@@ -11,6 +11,8 @@ from core.risk.engine import RiskResult
 
 class FindingStatus(str, Enum):
     OPEN = "open"
+    RECOMMENDATION_CREATED = "recommendation_created"
+    REMEDIATION_APPLIED = "remediation_applied"
 
 
 @dataclass(frozen=True)
