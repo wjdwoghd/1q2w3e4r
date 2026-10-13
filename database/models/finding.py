@@ -13,6 +13,9 @@ class FindingStatus(str, Enum):
     OPEN = "open"
     RECOMMENDATION_CREATED = "recommendation_created"
     REMEDIATION_APPLIED = "remediation_applied"
+    VERIFICATION_IN_PROGRESS = "verification_in_progress"
+    VERIFICATION_PASSED = "verification_passed"
+    VERIFICATION_FAILED = "verification_failed"
 
 
 @dataclass(frozen=True)

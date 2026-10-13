@@ -49,7 +49,7 @@ Phase 4의 `MatchResult`는 `vulnerability_match_runs`에 구성요소 발생 ID
 
 Finding 최초 생성 시 `finding_status_history`에 Open 이벤트를 한 번 기록한다.
 Phase 8은 `recommendation_created`, `remediation_applied`를 DB CHECK와 Enum에
-추가했다. Verification 상태는 아직 허용하지 않는다. 여러 CVE의 저장은 한 트랜잭션이며 중간
+추가했다. Phase 9은 아래 검증 상태를 추가한다. 여러 CVE의 저장은 한 트랜잭션이며 중간
 제약 오류 시 Finding·관측·상태 이력 모두 롤백한다.
 
 ## Phase 7.1 보안통제 참고용 매핑
@@ -88,3 +88,42 @@ ID·이름·버전·PURL, CVE, Risk 점수·Priority·근거·규칙 버전과 �
 각각 한 트랜잭션으로 갱신된다. DB 전이 트리거는 계획 없이 `Recommendation Created`,
 적용 기록 없이 `Remediation Applied`로 바꾸는 것을 거부한다. 이 증거는 수행 기록의
 출처이지 취약점 제거 증명은 아니며 독립 재분석은 Phase 9 범위다.
+
+## Phase 9 Verification
+
+`0007_verifications.sql`은 SQLite CHECK 변경을 위해 `findings`와
+`finding_status_history`만 재구성하고 기존 행·ID·소속·Snapshot을 보존한다.
+Finding의 `UNIQUE(asset_id,cve_id)` 정책은 유지한다. 상태 이력에 nullable
+`verification_id` FK를 추가하고 검증 전 상태는 기존처럼 중복을 막는다.
+검증 상태는 `UNIQUE(verification_id,status)`로 시도별 In Progress와 Passed/Failed를
+남겨 같은 Finding의 반복 검증을 허용한다. 이력의 수정·삭제를 차단한다.
+FindingRepository의 초기 Open 저장은 변경된 고유 제약에도 멱등으로 동작한다.
+
+```text
+RemediationApplication 1 ── N Verification
+Verification 1 ── 0..1 AfterEvidence 1 ── 0..1 VerificationResult
+Verification 1 ── N FindingStatusHistory
+```
+
+`verifications`는 적용 기록 FK, Finding·자산 FK, 시도 키, Before·원본 SBOM·적용 기록
+사본, 필수 기능 테스트 ID와 시작 시점을 보존한다. `(remediation_id,attempt_key)`는
+고유하다. 적용·Recommendation·관측·Finding·자산의 소속, Before 일치, 적용 기록
+사본의 일치 및 Finding당 진행 중인 시도 하나를 트리거로 제한한다.
+
+`verification_after_evidence`는 After SBOM FK와 증거 JSON·SHA-256·기록 시점을 저장한다.
+원본 문서·발생별 구성요소, 재매칭 실행과 원본 OSV/NVD/KEV 자료, Scanner·기능 테스트의
+출처·참조·수집 시점을 분리된 사본으로 보존한다. FK와 트리거는 자산·SBOM·
+재매칭 실행·구성요소·테스트 증거 소속을 확인한다. 누락되거나 판정에 부족한 증거도
+보존할 수 있으며 JSON 유효성·소속 검사와 통과 조건 판정은 서로 다른 책임이다.
+
+`verification_results`는 After Evidence FK, Passed/Failed, 규칙 버전, 이유,
+SBOM Diff와 완료 시점을 저장한다. 세 테이블 모두 수정·삭제를 막는다.
+검증 시작과 완료는 기록·Finding 전이·상태 이력을 한 트랜잭션으로 처리한다.
+DB 전이는 최신 진행 시도의 결과 없이 Passed/Failed로 바꾸거나 적용 없이 검증을
+시작하는 것을 거부한다. 실제 증거 내용의 결정적 판정은 `core/verification/`의 책임이다.
+
+신규 DB는 `initialize_database()`를 사용한다. 이전 Finding 스키마가 있으면 초기화는
+`DatabaseMigrationRequiredError`로 중단하며 암묵적으로 변경하지 않는다. Phase 8 DB는
+기존 트랜잭션 밖에서 `0007_verifications.sql`을 한 번 적용하고 FK 검사를 확인한다.
+SQL 적용 실패 시 ROLLBACK하고 `PRAGMA foreign_keys=ON`을 복구해야 한다.
+운영 DB 자동 마이그레이션 도구와 Risk Accepted 승인 테이블은 아직 구현하지 않았다.

@@ -82,7 +82,7 @@ class SQLiteFindingRepository:
                     ).fetchone()["id"]
                     self.connection.execute(
                         """INSERT INTO finding_status_history (finding_id, status, recorded_at)
-                        VALUES (?, ?, ?) ON CONFLICT(finding_id, status) DO NOTHING""",
+                        VALUES (?, ?, ?) ON CONFLICT DO NOTHING""",
                         (finding_id, FindingStatus.OPEN.value, timestamp),
                     )
                     prior = self.connection.execute(

@@ -52,5 +52,12 @@ Phase 8은 `RemediationService`가 Recommendation ID, 관측 ID, Finding ID의 �
 참조·출처를 추가한다. 동일 Recommendation의 조치 키는 멱등이고 계획·적용 기록은
 수정하거나 삭제할 수 없다. Finding은 계획 저장 때 `Recommendation Created`, 수행
 증거 저장 때 `Remediation Applied`로 전이하며 Open 이력은 남는다. 적용 기록은
-개선 효과 검증을 의미하지 않는다. 조치 후 재분석·After Snapshot·Verification은
-Phase 9 이후다.
+개선 효과 검증을 의미하지 않는다.
+
+Phase 9은 `VerificationService`가 적용 기록과 불변 Before Snapshot, Recommendation,
+관측, Finding, 자산 소속을 확인하여 검증 시도를 시작한다. 기존 생성·파싱·정규화·저장과
+Phase 4 재매칭 경로가 만든 After 데이터를 읽고 별도 증거 사본을 보존한다.
+`verifier.py`는 구성요소 변경·기존 CVE 재분석/재검사·필수 기능 테스트 및 출처·수집 시점을
+조합하여 결정적 Passed/Failed를 반환한다. VerificationRepository는 시도·증거·판정과
+Finding 상태 이력을 원자적으로 저장한다. 반복 검증은 새 시도에 추가하고 기존 Snapshot과
+판정 근거를 보존한다. 실제 Scanner 실행 연동, API 및 승인 기반 위험 수용은 후속 작업이다.

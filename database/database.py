@@ -5,6 +5,8 @@ from __future__ import annotations
 import sqlite3
 from pathlib import Path
 
+from database.verification_schema import VERIFICATION_SCHEMA
+
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -81,7 +83,8 @@ CREATE TABLE IF NOT EXISTS findings (
     asset_id INTEGER NOT NULL REFERENCES assets(id) ON DELETE RESTRICT,
     cve_id TEXT NOT NULL CHECK (cve_id GLOB 'CVE-[0-9][0-9][0-9][0-9]-*'),
     status TEXT NOT NULL DEFAULT 'open' CHECK (status IN
-        ('open', 'recommendation_created', 'remediation_applied')),
+        ('open', 'recommendation_created', 'remediation_applied',
+         'verification_in_progress', 'verification_passed', 'verification_failed')),
     created_at TEXT NOT NULL,
     UNIQUE (asset_id, cve_id)
 );
@@ -112,9 +115,15 @@ CREATE TABLE IF NOT EXISTS finding_status_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     finding_id INTEGER NOT NULL REFERENCES findings(id) ON DELETE RESTRICT,
     status TEXT NOT NULL CHECK (status IN
-        ('open', 'recommendation_created', 'remediation_applied')),
+        ('open', 'recommendation_created', 'remediation_applied',
+         'verification_in_progress', 'verification_passed', 'verification_failed')),
     recorded_at TEXT NOT NULL,
-    UNIQUE (finding_id, status)
+    verification_id INTEGER REFERENCES verifications(id) ON DELETE RESTRICT,
+    UNIQUE (verification_id, status),
+    CHECK ((verification_id IS NULL AND status IN
+             ('open', 'recommendation_created', 'remediation_applied'))
+        OR (verification_id IS NOT NULL AND status IN
+             ('verification_in_progress', 'verification_passed', 'verification_failed')))
 );
 CREATE TABLE IF NOT EXISTS finding_control_mappings (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -208,6 +217,14 @@ def connect_database(path: str | Path = ":memory:") -> sqlite3.Connection:
     return connection
 
 
+class DatabaseMigrationRequiredError(RuntimeError):
+    """An existing schema needs explicit migrations before initialization."""
+
+
 def initialize_database(connection: sqlite3.Connection) -> None:
-    connection.executescript(SCHEMA)
+    history_columns = connection.execute("PRAGMA table_info(finding_status_history)").fetchall()
+    if history_columns and "verification_id" not in {column[1] for column in history_columns}:
+        raise DatabaseMigrationRequiredError(
+            "existing Finding schema requires migrations through 0007_verifications.sql")
+    connection.executescript(SCHEMA + VERIFICATION_SCHEMA)
     connection.commit()

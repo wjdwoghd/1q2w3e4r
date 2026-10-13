@@ -798,7 +798,7 @@ database/migrations/0006_remediations.sql
 - [x] 조치 상태 관리 (Planned/Applied, Finding의 두 전이)
 - [x] Before 상태 저장 (구성요소·버전·CVE·Risk 근거의 불변 스냅샷)
 - [x] 조치 내용·담당자·시점·수행 증거·출처 기록
-- [ ] After 분석과 연결 (Phase 9 이후)
+- [x] After 분석과 연결 (Phase 9 검증 시도·증거 참조)
 
 ## 완료 조건
 
@@ -851,16 +851,17 @@ core/sbom/diff.py
 
 ## 작업
 
-- [ ] Before Snapshot
-- [ ] After Snapshot
-- [ ] SBOM Diff
-- [ ] Version 비교
-- [ ] CVE 재매칭
-- [ ] Scanner Re-scan 연동
-- [ ] Verification Rule
-- [ ] Evidence 저장
-- [ ] Passed 처리
-- [ ] Failed 처리
+- [x] Phase 8 불변 Before Snapshot·적용 기록 연결 및 소속 검증
+- [x] 별도 After Evidence (SBOM·구성요소·재분석·기능 테스트 및 출처·수집 시점)
+- [x] SBOM Diff (발생 보존, 추가·제거·버전/발생 수 변경)
+- [x] Version 비교 (기존 버전 잔존·미식별 구성요소는 실패)
+- [x] Phase 4 CVE 재매칭 결과 연결 (After SBOM 전체 구성요소 범위)
+- [x] Scanner Re-scan 구조화 결과 입력·저장·판정
+- [ ] 실제 Scanner 및 기능 테스트 실행 도구 연동
+- [x] 결정적 Verification Rule 및 판정 이유·규칙 버전 보존
+- [x] 불변 Evidence·시도·판정 저장, 멱등성 및 반복/추가 조치 이력
+- [x] In Progress·Passed 상태와 Finding 이력의 원자적 전이
+- [x] Failed 처리 (증거 누락·모순·오류 포함)
 - [ ] Risk Accepted 처리
 
 ## Verification 예시
@@ -889,7 +890,16 @@ Verification Passed
 
 ## 완료 조건
 
-개선 성공/실패를 Evidence와 함께 반환한다.
+적용된 Remediation을 기준으로 개선 성공/실패를 별도 After Evidence와 함께 반환한다.
+동일 증거 재전달은 멱등이고 새 검증은 과거 Before Snapshot과 이유를 덮어쓰지 않는다.
+오프라인 테스트로 정상·실패·누락·불일치·소속·상태·멱등성·반복·DB 제약·롤백·
+Phase 8→9 마이그레이션을 확인했다. 기존 매칭·위험·Finding 식별·Recommendation
+사실 검증 및 Phase 8 Before 정책은 유지한다.
+
+실제 Scanner/기능 테스트 실행과 첫 Lab 연동은 아직 검증하지 않았다.
+Risk Accepted는 검증 통과로 처리하지 않으며 승인 주체·사유·시점을 갖춘 별도 절차가
+구현되기 전까지 미지원이다. 상세 계약과 남은 연동은 `docs/verification.md`에 기록한다.
+Phase 10 화면용 집계와 Phase 11 이후 기능은 이번 구현에 포함하지 않는다.
 
 ---
 
