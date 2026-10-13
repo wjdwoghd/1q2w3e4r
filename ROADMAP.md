@@ -72,7 +72,7 @@ Report
 
 ## Current Phase
 
-**최근 구현: Phase 7.2 관측별 Recommendation 생성·저장·조회**
+**최근 구현: Phase 10 시도별 Before / After 비교·구조화 집계**
 
 Phase 1의 금융서비스·자산 등록/조회와 SQLite 저장, Context 검증이 구현되었다.
 Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정규화 규칙을 수정하여
@@ -100,6 +100,13 @@ Phase 7.2는 단일 Finding 관측의 저장된 매칭·위험·자산 스냅샷
 향후 검증 단계 초안을 선택한다. EOL은 미확인으로 전달한다. 엄격한 JSON Schema 요청과 로컬
 출력 검증, 관측별 멱등 저장·재분석 이력을 오프라인으로 검증했다. 전체 테스트
 105개가 통과했다. 실제 OpenAI 호출과 Lab 연동은 아직 검증하지 않았다.
+
+Phase 8·9의 조치 및 검증 시도·불변 증거 저장을 재사용하여 Phase 10의 읽기 전용
+Finding·자산 비교를 구현했다. 명시적으로 선택한 Remediation·Verification만 조회하고
+구성요소 발생과 CVE/Finding의 집계 단위를 구분한다. 불완전한 분석, After Risk 및 EOL
+미확인 자료는 `None`과 사유로 반환한다. 전체 오프라인 테스트 163개(기존 138개 +
+Phase 10 신규 25개)가 통과했다. Dashboard·API 화면 연결·보고서는 구현하지 않았다.
+자세한 계약과 현재 증거로 확인할 수 없는 값은 [Before / After 문서](docs/before_after.md)를 따른다.
 
 ## Progress
 
@@ -925,17 +932,33 @@ Verification Status
 
 ## 작업
 
-- [ ] Before Snapshot
-- [ ] After Snapshot
-- [ ] Phase 9의 SBOM Diff를 재사용한 비교 집계
-- [ ] 증감 계산
-- [ ] Finding별 비교
-- [ ] Asset별 비교
-- [ ] Dashboard용 데이터 생성
+- [x] Before Snapshot (Phase 8 및 선택한 Phase 9 시도의 사본 재사용)
+- [x] After Snapshot (선택한 시도의 불변 After Evidence 재사용)
+- [x] Phase 9의 SBOM Diff를 재사용한 비교 집계
+- [x] 증감 계산 (값·분석 범위가 확인되는 항목에 한정)
+- [x] Finding별 비교
+- [x] Asset별 비교 (명시적 시도 선택 및 동일 증거 범위 확인)
+- [x] Dashboard용 데이터 생성 (UI와 무관한 구조화 데이터; 화면 연결 제외)
 
 ## 완료 조건
 
 개선 전·후 차이를 근거와 함께 구조화 데이터로 반환한다. 화면 연결은 Phase 11에서 수행한다.
+
+`core/verification/comparison.py`의 `ComparisonService`와 읽기 전용
+`database/repositories/comparison_repository.py`를 추가했다. 새 테이블·마이그레이션·
+Dependency는 없다. 구성요소 발생을 보존하고 CVE와 Finding은 자산+CVE 기준으로
+중복 계산하지 않는다. Failed와 반복 검증은 선택한 시도의 원래 상태·근거를 유지한다.
+
+기존 Before 사본에는 전체 취약점 분석이 없으므로 자산 전체 Before CVE·Critical·KEV
+수는 미확인이다. 단일 구성요소 전체 목록에서 그 발생의 취약성이 확인되면 취약
+구성요소 수 1은 반환할 수 있다. After는 모든 발생의 완전한 재매칭에서만 전체
+취약점 수를 집계한다. 특정 CVE의 Scanner 결과는 해당 Finding에만 적용한다.
+After Risk·우선순위·EOL 자료가 없으면 `None`을 반환하며 임의로 0을 만들지 않는다.
+전체 자산 Risk Score의 합산 규칙도 새로 정의하지 않았다.
+
+정상 비교·누락·범위 불일치·중복·소속 오류·Failed·반복 시도 선택·과거 Snapshot
+보존·결정적 집계를 신규 오프라인 테스트 25개로 검증했다. 전체 163개가 통과했다.
+실제 Scanner 실행, 첫 Lab, 위험 수용 승인, Dashboard·API 및 보고서는 후속 범위다.
 
 ---
 

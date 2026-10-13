@@ -61,3 +61,11 @@ Phase 4 재매칭 경로가 만든 After 데이터를 읽고 별도 증거 사�
 조합하여 결정적 Passed/Failed를 반환한다. VerificationRepository는 시도·증거·판정과
 Finding 상태 이력을 원자적으로 저장한다. 반복 검증은 새 시도에 추가하고 기존 Snapshot과
 판정 근거를 보존한다. 실제 Scanner 실행 연동, API 및 승인 기반 위험 수용은 후속 작업이다.
+
+Phase 10은 `core/verification/comparison.py`의 `ComparisonService`와 순수 비교 함수를
+사용한다. `SQLiteComparisonRepository`가 특정 자산·Finding·조치·검증 시도의 소속을
+확인하고 기존 불변 사본·Recommendation 입력을 읽는다. 핵심 집계와 기존 SBOM Diff
+호출은 core에서 수행하고 SQL은 Repository에 한정한다. 전체 After 재매칭과 특정 CVE
+Scanner의 분석 범위를 구분하고 누락값·범위 불일치는 `None`과 사유로 전달한다.
+비교는 Finding 상태, 판정 및 Snapshot을 갱신하지 않는다. UI와 무관한 구조화 데이터
+계약은 [Before / After 문서](before_after.md)에 있으며 Dashboard·보고서는 포함하지 않는다.

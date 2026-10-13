@@ -69,7 +69,8 @@ After Evidence에는 원본 SBOM, 발생별 구성요소, Phase 4의 OSV/NVD/KEV
 `core/sbom/diff.py`는 버전을 제외한 PURL(생태계·namespace·이름·qualifier·subpath)을
 기준으로 추가·제거 패키지, 버전 집합 변경, 발생 수 변경 및 미식별 구성요소를 반환한다.
 같은 패키지의 중복 발생을 보존하고 어느 설치가 어느 설치로 바뀌었는지는 추측하지 않는다.
-Diff는 검증 판정에 보존하는 근거이며 Phase 10의 화면용 집계는 구현하지 않았다.
+Diff는 검증 판정에 보존하는 근거이며 Phase 10은 이 함수를 재사용하여 UI와 무관한
+구조화 비교를 제공한다. 화면 연결은 Phase 11 범위다.
 
 ## 상태·멱등성·반복 검증
 
@@ -109,3 +110,12 @@ python -m unittest discover -s tests -v
 승인 기반 위험 수용은 후속 작업이다. 외부 결과 입력의 진위를 확보하는 책임은
 수집 도구/호출자에 있으며 출처 문자열만으로 진위를 인증하지 않는다.
 기존 DB에는 `0007_verifications.sql`이 필요하고 새 DB는 최신 스키마로 초기화한다.
+
+## Phase 10 읽기 전용 비교
+
+`ComparisonService`는 명시적인 자산·Finding·Remediation·Verification ID를 받아
+해당 시도의 사본과 원래 판정을 조회한다. 기존 Snapshot과 Finding 상태·검증 규칙·
+이력을 변경하지 않는다. 전체 After 재매칭과 특정 CVE Scanner의 범위를 구분하며,
+After Risk·EOL 또는 전체 Before 분석이 없으면 미확인 값과 사유를 반환한다.
+반복 검증과 Failed도 시도별로 조회할 수 있다. 집계 기준·출처·수집 시점·증거 ID와
+호출 계약은 [Before / After 문서](before_after.md)를 따른다.

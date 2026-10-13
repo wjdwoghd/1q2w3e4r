@@ -127,3 +127,13 @@ DB 전이는 최신 진행 시도의 결과 없이 Passed/Failed로 바꾸거나
 기존 트랜잭션 밖에서 `0007_verifications.sql`을 한 번 적용하고 FK 검사를 확인한다.
 SQL 적용 실패 시 ROLLBACK하고 `PRAGMA foreign_keys=ON`을 복구해야 한다.
 운영 DB 자동 마이그레이션 도구와 Risk Accepted 승인 테이블은 아직 구현하지 않았다.
+
+## Phase 10 Before / After 조회
+
+`SQLiteComparisonRepository`는 명시적인 자산·Finding·Remediation·Verification ID의
+소속을 확인하고 기존 관측의 Recommendation 입력 사실과 시도별 사본·판정을 읽는다.
+새 테이블·마이그레이션은 없다. 가변 Phase 4/SBOM 원본의 최신 내용은 집계에 사용하지
+않고 Before·After 사본을 재사용한다. 조회·집계는 상태 전이 또는 INSERT/UPDATE/DELETE를
+수행하지 않는다. `verification_after_evidence`의 PK인 `verification_id`를 비교 결과의
+증거 식별자로 반환한다. 전체 Before 취약점·After Risk·EOL 자료가 없는 한계를 유지하며
+임의의 Snapshot을 추가하지 않는다. 자세한 범위는 [비교 계약](before_after.md)을 따른다.
