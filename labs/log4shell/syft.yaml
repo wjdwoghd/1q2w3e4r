@@ -1,0 +1,8 @@
+# Application package inventory. Physical JAR/class hashes are separate evidence.
+# All discovered packages remain; there are no cataloger/package exclusions.
+check-for-app-update: false
+file:
+  metadata:
+    selection: none
+java:
+  use-network: false

@@ -69,3 +69,11 @@ Phase 10은 `core/verification/comparison.py`의 `ComparisonService`와 순수 �
 Scanner의 분석 범위를 구분하고 누락값·범위 불일치는 `None`과 사유로 전달한다.
 비교는 Finding 상태, 판정 및 Snapshot을 갱신하지 않는다. UI와 무관한 구조화 데이터
 계약은 [Before / After 문서](before_after.md)에 있으며 Dashboard·보고서는 포함하지 않는다.
+
+첫 Lab은 `labs/log4shell/`의 공통 Java HTTP 서비스와 Before/After Maven 모듈로
+플랫폼과 분리한다. 플랫폼의 Python 의존성·DB·Risk·Matcher·검증 규칙을 바꾸지 않는다.
+호스트 PowerShell 도구는 실제 Java 프로세스·로그·실행 파일의 생명주기만 관리하고
+플랫폼 상태·판정을 갱신하지 않는다. 자식 환경에는 플랫폼 키·DB 설정을 전달하지 않는다.
+SBOM 생성은 기존 Wrapper, 분석·저장·검증은 기존 core·Repository를 호출한다.
+로컬 가상화가 없어도 호스트 방식의 준비·기능 검증이 가능하다. 상세 범위·명령은
+[Lab README](../labs/log4shell/README.md)를 따른다.

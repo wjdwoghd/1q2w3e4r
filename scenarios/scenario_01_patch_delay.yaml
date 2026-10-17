@@ -1,0 +1,48 @@
+scenario_id: SCN-001
+name: Local Log4j dependency upgrade and evidence collection
+lab: labs/log4shell
+execution_scope: isolated_local_java_application
+
+# Fictional financial context; this does not expose the Lab to the internet.
+asset_context:
+  name: Synthetic Internet Banking API
+  environment: production
+  internet_exposed: true
+  business_criticality: critical
+  customer_information: false
+  credit_information: false
+  patch_status: overdue
+  vendor: Isolated lab
+  owner: Lab operator
+context_kind: fictional_financial_scenario
+
+component:
+  package: pkg:maven/org.apache.logging.log4j/log4j-core
+  declared_before_version: 2.14.1
+  declared_after_version: 2.25.5
+  target_cve_for_matching: CVE-2021-44228
+  version_evidence: Actual deployed JAR and regenerated SBOM required
+
+runtime:
+  host_binding: 127.0.0.1
+  host_port: 18080
+  before_path: labs/log4shell/vulnerable/target/runtime
+  after_path: labs/log4shell/patched/target/runtime
+  include: Application classes and all deployed Java dependency JARs
+  exclude: JDK and container OS are separate assets, not covered by this application scenario
+
+required_functional_tests:
+  - health-contract
+  - banking-api-smoke
+
+verification:
+  engine_rule_version: verification-1.0
+  evidence: Separate before/after SBOMs, complete matching, actual functional results and change log
+  declared_expected_status: null
+  actual_status: null
+  risk_score_before: null
+  risk_score_after: null
+  kev: null
+  cvss: null
+  eol: null
+  note: Values and final decisions must come from the platform evidence, never this scenario

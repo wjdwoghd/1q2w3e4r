@@ -1083,6 +1083,11 @@ Phase 2~3의 입출력 계약과 Phase 1의 자산 모델을 사용한다. 실�
 
 ## 첫 번째 Lab 및 시연 준비
 
+실행 준비·기본 명령·core 호출·증거 수집·오류 처리는
+[첫 Lab 실행 가이드](docs/lab_e2e_runbook.md), 단계별 완료 확인은
+[전체 점검표](docs/lab_e2e_checklist.md)를 사용한다. 가이드 작성만으로 아래 구현·실제
+검증 작업을 완료 처리하지 않는다.
+
 ### 목표
 
 하나의 취약 환경을 만들어 전체 Pipeline을 실제로 검증한다.
@@ -1108,6 +1113,19 @@ Verification 방법
 실행 방법
 ```
 
+### 준비 상태 (2026-10-14)
+
+기존 `labs/log4shell/`에 공통 Java 서비스, 2.14.1/2.25.5 Maven 빌드,
+호스트 실행·종료 도구, 로컬 전용 Compose와 명시적인 Java 패키지 SBOM 설정을 준비했다.
+공식 체크섬을 확인한 휴대용 JDK·Maven·Syft로 두 빌드·실제 기능·실제 버전·
+생성→Parser→Normalizer→메모리 DB 저장→Diff를 확인했다. 전체 테스트 170개가 통과했다.
+도구·빌드 결과는 Git 제외 경로다. 플랫폼 core·위험·Finding·검증 규칙은 변경하지 않았다.
+
+Docker CLI 설정 검사는 통과했지만 로컬 데몬·WSL2 조건 때문에 컨테이너 기동은
+미검증이다. 호스트 방식은 바로 사용할 수 있다. 기존 18080 사용자는 보존했다.
+실제 CVE/KEV 재매칭, AI 호출, 플랫폼 조치·Verification 전체 실 시도는 남아 있다.
+시나리오의 Risk·CVSS·KEV·최종 판정은 미확인으로 유지한다.
+
 ### 첫 번째 Lab 선정 기준
 
 - SBOM에서 Component 식별이 명확할 것
@@ -1118,14 +1136,14 @@ Verification 방법
 
 ### 작업
 
-- [ ] 첫 Lab 선정
-- [ ] vulnerable 환경 작성
-- [ ] patched 환경 작성
-- [ ] SBOM 생성 확인
+- [x] 첫 Lab 선정 (기존 Log4Shell)
+- [x] vulnerable 환경 작성 (공통 Java 소스·호스트 빌드/기동 검증; Docker 기동 미검증)
+- [x] patched 환경 작성 (같은 기능 계약·별도 런타임·호스트 검증)
+- [x] SBOM 생성 확인 (명시적인 Java 패키지 범위, Before/After 각 2개)
 - [ ] CVE Mapping 확인
 - [ ] Risk 계산 확인
-- [ ] 개선 시나리오 작성
-- [ ] Verification 방법 작성
+- [x] 개선 시나리오 작성 (가상 금융 Context·범위·필수 테스트; 실제 결과 없음)
+- [x] Verification 방법 작성 (기존 규칙·독립 증거·수동 가이드 연결)
 
 ### 완료 조건
 
