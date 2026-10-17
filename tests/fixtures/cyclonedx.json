@@ -1,0 +1,17 @@
+﻿{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "component": {"type": "application", "name": "sample-app", "bom-ref": "app"}
+  },
+  "components": [{
+    "type": "library", "name": "sample-library", "version": "01.2.0",
+    "bom-ref": "lib", "group": "example",
+    "purl": "pkg:pypi/sample-library@01.2.0",
+    "supplier": {"name": "Example Supplier"},
+    "hashes": [{"alg": "SHA-256", "content": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}],
+    "licenses": [{"license": {"id": "MIT"}}]
+  }],
+  "dependencies": [{"ref": "app", "dependsOn": ["lib"]}, {"ref": "lib", "dependsOn": []}]
+}

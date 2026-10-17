@@ -2,13 +2,18 @@
 
 가상의 금융사를 대상으로 SBOM, 취약점·공급망 위협정보, 금융서비스 자산정보를 결합하여 대응 우선순위를 산정하는 프로젝트이다. 금융권 보안기준을 참고해 개선방안을 제시하고, 조치 후 재검증을 통해 실제 개선 효과까지 확인하는 컨설팅 지원 플랫폼을 목표로 한다.
 
-> 현재는 디렉터리 구조와 빈 파일을 구성한 설계 단계이다. 아래 기능은 구현 목표이며, API·분석 엔진·대시보드·실습환경은 아직 실행 가능한 상태가 아니다.
+> Phase 1~10의 core·Repository와 첫 호스트 Lab E2E를 검증했다. 2026-10-17에는
+> 공통 CLI의 새 Run에서도 선택한 CVE의 Verification Passed와 반복 조회를 확인했다.
+> Recommendation은 로컬 연결 점검 모드다. 실 AI·Scanner·After Risk·EOL,
+> API·Dashboard·보고서는 남아 있다. 상세 상태는 ROADMAP.md를 따른다.
 
 기획 기준: [프로젝트 Notion 문서](https://app.notion.com/p/SBOM-3e24a9a6169880f6bc91dd3d61a376ac)
 
 ## 주요 문서
 
 - [개발 로드맵](./ROADMAP.md)
+- [첫 Lab End-to-End 실행 가이드](./docs/lab_e2e_runbook.md)
+- [첫 Lab 전체 점검표](./docs/lab_e2e_checklist.md)
 - [GitHub 협업 원칙](./docs/github_collaboration.md)
 - [코드 작성 원칙](./docs/coding_conventions.md)
 - [GitHub 협업 설정](./.github/OVERVIEW.md)
@@ -130,7 +135,10 @@ EOL 정보, Vendor Mapping, Historical KEV Replay, 악성 패키지·Typosquatti
 | `labs/snakeyaml/` | 간접 의존성 식별과 개선 전후 비교 |
 | `labs/eol-component/` | 지원 종료 소프트웨어의 수명주기 위험 분석, 확장 범위 |
 
-각 실습의 `vulnerable/`와 `patched/`는 비교 대상의 위치이다. 현재 구현은 비어 있으며, 위 경로는 아래 목표 구조를 기준으로 한다.
+각 실습의 `vulnerable/`와 `patched/`는 비교 대상의 위치이다. 기존 Log4Shell Lab에는
+공통 Java 서비스·두 의존성 빌드·호스트 실행 도구·Compose 정의가 준비됐고 실제
+호스트 기능·SBOM 경로를 검증했다. 나머지 Lab은 자리 파일이며 전체 취약점 분석·
+조치·검증 연결은 남아 있다. [바로 실행하기](./labs/log4shell/README.md)를 따른다.
 
 분석 플랫폼의 의존성과 실습환경의 의존성은 분리한다. 루트 `docker-compose.yml`은 플랫폼 구성용으로 계획하고, 실습별 Compose 파일은 각 `labs/` 하위 환경을 관리한다.
 
@@ -288,7 +296,10 @@ vulnerable/ -> SBOM 생성 -> 취약점 발견 -> 개선방안
 | 데이터베이스 | 연결 설정, 도메인 엔티티, 마이그레이션 관리; DB 제품 및 라이브러리 미확정 |
 | 실습환경 | 플랫폼과 분리된 Docker Compose 구성 계획 |
 
-현재 의존성 목록, 실행 진입점, Compose 파일, 테스트 및 CI 설정은 빈 파일이다. 설치·실행 명령과 지원 버전은 구현 후 문서화한다.
+현재 Python 요구사항은 `packageurl-python`이며 core·Repository와 오프라인 테스트가
+구현돼 있다. 일반 분석 CLI는 아직 자리 파일이고 첫 Lab에는 별도 PowerShell 빌드·
+호스트 실행 도구와 Compose 정의가 있다. 실조회 보조 CLI,
+기본 환경 점검과 Lab 준비 이후의 실행 절차는 [실행 가이드](./docs/lab_e2e_runbook.md)를 따른다.
 
 API 키 등 실제 비밀값은 로컬 `.env`에만 등록한다. `.env.example`에는 변수명과 공개 가능한 기본값만 둔다.
 

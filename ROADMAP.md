@@ -72,7 +72,41 @@ Report
 
 ## Current Phase
 
-**Phase 0 - 프로젝트 설계 및 저장소 초기화**
+**최근 구현: Phase 10 시도별 Before / After 비교·구조화 집계**
+
+Phase 1의 금융서비스·자산 등록/조회와 SQLite 저장, Context 검증이 구현되었다.
+Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정규화 규칙을 수정하여
+단위·통합 테스트를 통과했다. 공통 지원 작업으로 Syft Wrapper와 자산-SBOM-Component
+저장 경로를 추가했다. Phase 4는 버전이 명확한 PURL을 OSV에 조회하고 CVE를 NVD와
+CISA KEV로 확인하는 경로를 fixture로 검증했다. Log4j Core 2.14.1에 대한 각
+클라이언트의 실제 단일 조회도 성공했다. Syft 1.54.1로 격리된 로컬 샘플의
+생성 → Parser → Normalizer → DB 저장을 확인했다. Phase 4 결과는 구성요소 발생별
+분석 실행과 CVE 증거로 저장·조회하며, 격리된 Log4j Core 2.14.1 로컬 샘플에서
+실제 OSV → NVD → CISA KEV → DB 저장·조회를 확인했다. 첫 Lab 연동은 아직
+검증하지 않았다.
+
+Phase 5의 규칙 기반 CVE별 점수와 우선순위를 Phase 6 저장 서비스에 연결했다.
+검증된 매칭 실행·자산 Context로 Finding을 생성하고, 같은 자산·CVE를 한 건으로
+유지하면서 재분석 관측과 원본 증거 연결을 보존한다. Phase 6 당시 오프라인 테스트 90개가
+통과했다. API·Dashboard와 첫 Lab 연동은 아직 구현·검증하지 않았다.
+
+Phase 7.1은 저장된 관측별로 공식 출처가 확인된 금융규정 조항과 ISMS-P 기준 영역을
+참고용으로 연결한다. 통제 유형·출처·적용 이유·관측 사실을 보존하며 멱등 재실행과
+재분석 이력을 오프라인으로 검증했다. 전체 테스트 95개가 통과했다. 오픈소스 관리
+안내서의 통제 식별자 확인은 남아 있다.
+
+Phase 7.2는 단일 Finding 관측의 저장된 매칭·위험·자산 스냅샷과 해당 관측의 통제
+매핑으로만 AI 입력을 구성한다. 사실 영역은 코드가 작성하고 AI는 허용된 개선 조치와
+향후 검증 단계 초안을 선택한다. EOL은 미확인으로 전달한다. 엄격한 JSON Schema 요청과 로컬
+출력 검증, 관측별 멱등 저장·재분석 이력을 오프라인으로 검증했다. 전체 테스트
+105개가 통과했다. 실제 OpenAI 호출과 Lab 연동은 아직 검증하지 않았다.
+
+Phase 8·9의 조치 및 검증 시도·불변 증거 저장을 재사용하여 Phase 10의 읽기 전용
+Finding·자산 비교를 구현했다. 명시적으로 선택한 Remediation·Verification만 조회하고
+구성요소 발생과 CVE/Finding의 집계 단위를 구분한다. 불완전한 분석, After Risk 및 EOL
+미확인 자료는 `None`과 사유로 반환한다. 전체 오프라인 테스트 163개(기존 138개 +
+Phase 10 신규 25개)가 통과했다. Dashboard·API 화면 연결·보고서는 구현하지 않았다.
+자세한 계약과 현재 증거로 확인할 수 없는 값은 [Before / After 문서](docs/before_after.md)를 따른다.
 
 ## Progress
 
@@ -146,6 +180,9 @@ Before / After
 
 # 5. 개발 단계
 
+Phase 번호와 범위는 [AGENTS.md §24](AGENTS.md#24-mvp-development-order)를 따른다.
+아래 Phase 1~12는 해당 표와 일치한다. 준비·지원·확장은 별도 절에서 관리한다.
+
 ## Phase 0. 프로젝트 설계 및 저장소 초기화
 
 ### 목표
@@ -192,7 +229,7 @@ docs/
 
 ---
 
-# 6. Phase 1. Asset & Business Context
+# 6. Phase 1. Asset Model
 
 ## 목표
 
@@ -255,20 +292,20 @@ data/assets/
 
 ## 작업
 
-- [ ] `BusinessService` Model
-- [ ] `Asset` Model
-- [ ] Asset Context Schema
-- [ ] Sample 금융서비스 데이터
-- [ ] Asset CRUD 또는 최소 등록/조회 기능
-- [ ] DB 저장
-- [ ] Validation
+- [x] `BusinessService` Model
+- [x] `Asset` Model
+- [x] Asset Context Schema
+- [x] Sample 금융서비스 데이터
+- [x] Asset CRUD 또는 최소 등록/조회 기능
+- [x] DB 저장
+- [x] Validation
 
 ## 테스트
 
-- [ ] 필수 필드 검증
-- [ ] 잘못된 Criticality 값 처리
-- [ ] Production / Development 구분
-- [ ] Internet Exposure 정상 처리
+- [x] 필수 필드 검증
+- [x] 잘못된 Criticality 값 처리
+- [x] Production / Development 구분
+- [x] Internet Exposure 정상 처리
 
 ## 완료 조건
 
@@ -276,77 +313,78 @@ Asset Context를 코드에서 안정적으로 조회할 수 있다.
 
 ---
 
-# 7. Phase 2. SBOM Engine
+# 7. Phase 2. SBOM Parser
 
 ## 목표
 
-분석 대상 애플리케이션에서 SBOM을 생성하고 Component를 추출한다.
-
-## 기본 형식
-
-우선 **CycloneDX** 형식을 기준으로 한다.
-
-## 추출 대상
-
-```text
-Component Name
-Version
-PURL
-Dependency
-Supplier
-Hash
-License
-```
+기존 CycloneDX JSON SBOM에서 구성요소와 의존성 기록을 추출한다.
+생성 도구 실행, 정규화, DB 저장은 이 단계의 완료 조건에 포함하지 않는다.
 
 ## 구현 위치
 
-```text
-core/sbom/
-
-generator.py
-parser.py
-normalizer.py
-diff.py
-```
+- `core/sbom/parser.py`
+- `tests/unit/test_sbom.py`
+- `tests/fixtures/cyclonedx.json`
 
 ## 작업
 
-- [ ] SBOM 생성 도구 선정
-- [ ] SBOM 생성 Wrapper
-- [ ] CycloneDX Parser
-- [ ] Component Name 추출
-- [ ] Version 추출
-- [ ] PURL 추출
-- [ ] Dependency 관계 추출
-- [ ] Supplier 추출
-- [ ] Hash 추출
-- [ ] License 추출
-- [ ] Component 정규화
-- [ ] DB 저장
+- [x] CycloneDX JSON Parser (1.4, 1.5, 1.6)
+- [x] Component Name / Version / PURL 추출
+- [x] Dependency 관계 및 중첩 Component 추출
+- [x] Supplier / Hash / License 추출
+- [x] 누락 필드와 잘못된 입력 처리
 
 ## 테스트
 
-- [ ] 정상 SBOM Parsing
-- [ ] 필드 일부 누락 SBOM 처리
-- [ ] 중복 Component 처리
-- [ ] Version 정규화
-- [ ] PURL Parsing
+- [x] 정상 SBOM Parsing
+- [x] 필드 일부 누락 SBOM 처리
+- [x] 중복 Component 참조 처리
+- [x] 잘못된 JSON·형식·버전·파일 처리
 
 ## 완료 조건
 
-```text
-Application
-↓
-SBOM
-↓
-Normalized Component List
-```
-
-흐름이 정상적으로 작동한다.
+기존 SBOM → ParsedSBOM / ParsedComponent 흐름이 실행되고 오류가 명시적으로 전달된다.
+원본 필드를 보존하며 누락된 버전·PURL을 추측하지 않는다. XML과 전체 Schema 검증은
+현재 미지원이다. 지원 계약과 14개 단위 테스트는 [파서 문서](core/sbom/README.md)를 참조한다.
 
 ---
 
-# 8. Phase 3. Vulnerability Intelligence
+# 8. Phase 3. Component Normalizer
+
+## 목표
+
+파서의 원본 추출 결과를 재현 가능한 규칙으로 정규화하여 취약점 매칭에 전달한다.
+원본 값과 정규화 결과를 구분하고 없는 버전이나 PURL을 사실처럼 생성하지 않는다.
+
+## 구현 위치
+
+- `core/sbom/normalizer.py`
+- `tests/unit/test_sbom.py`
+
+## 작업
+
+- [x] Component 이름·공급자·Package 정보 정규화 규칙
+- [x] Version 정규화 규칙과 원본 보존
+- [x] PURL Parsing 및 정규화
+- [x] 중복 Component 식별·처리 정책
+- [x] 누락·지원하지 않는 입력 처리
+- [x] 후속 Matcher 및 저장 계층에 전달할 Interface 정의
+
+## 테스트
+
+- [x] Version 정규화
+- [x] PURL Parsing
+- [x] 중복 및 누락 필드 처리
+- [x] 같은 입력의 정규화 결과 재현성
+
+## 완료 조건
+
+Parsed Component List → Normalized Component List 흐름과 변환 근거를 확인할 수 있다.
+생성 Wrapper와 DB 저장은 별도 지원 작업으로 관리한다.
+
+---
+
+# 9. Phase 4. CVE / CVSS / CWE / KEV Matcher
 
 ## 목표
 
@@ -359,8 +397,9 @@ CVE
 CVSS
 CWE
 CISA KEV
-EOL
 ```
+
+EOL은 확장 항목이며 Phase 4의 필수 범위와 구분한다.
 
 ## 구현 위치
 
@@ -377,27 +416,28 @@ eol_client.py
 
 ## 작업
 
-- [ ] Component Normalizer 연동
-- [ ] PURL / CPE Mapping 방식 결정
-- [ ] CVE 조회
-- [ ] CVSS 조회
-- [ ] CWE 조회
-- [ ] CISA KEV 조회
-- [ ] EOL 조회
-- [ ] Component ↔ CVE Matching
-- [ ] 결과 DB 저장
-- [ ] External API Error Handling
-- [ ] Timeout / Retry
-- [ ] Cache 전략 검토
+- [x] Component Normalizer 연동 (NormalizedComponent 입력)
+- [x] PURL / CPE Mapping 방식 결정 (검증된 버전 PURL → OSV; CPE 자동 변환 제외)
+- [x] CVE 조회 (OSV 결과의 단일 CVE 식별자를 NVD에서 확인)
+- [x] CVSS 조회 (NVD에 값이 없으면 `None`)
+- [x] CWE 조회 (NVD에 값이 없으면 빈 목록)
+- [x] CISA KEV 조회 (완전한 카탈로그 스냅샷에서 등록 여부 확인)
+- [ ] EOL 조회 (확장 범위; Phase 4 필수 완료 조건에서 제외)
+- [x] Component ↔ CVE Matching (미매칭·모호성·외부 오류 상태 분리)
+- [x] 결과 DB 저장·조회 (구성요소 발생별 실행·CVE 증거·재분석 이력)
+- [x] External API Error Handling (HTTP·429·응답 검증)
+- [x] Timeout / Retry (제한된 재시도)
+- [x] Cache 전략 검토 (현재 미구현; 반복 조회용 배치/스냅샷 재사용은 후속 설계)
 
 ## 테스트
 
-- [ ] CVE Matching 성공
-- [ ] CVE 없음
-- [ ] KEV 등록 / 미등록
-- [ ] API 응답 실패
-- [ ] 잘못된 Component 입력
-- [ ] CVSS 누락 처리
+- [x] CVE Matching 성공
+- [x] CVE 없음
+- [x] KEV 등록 / 미등록
+- [x] API 응답 실패
+- [x] 잘못된 Component 입력과 모호한 식별자
+- [x] CVSS / CWE 누락 처리
+- [x] 결과 저장·조회, 동일 실행 중복 저장, 재분석 이력, DB 제약·트랜잭션 (오프라인 fixture)
 
 ## 완료 조건
 
@@ -411,15 +451,17 @@ CVSS
 CWE
 ↓
 KEV
-↓
-EOL
 ```
 
-연결이 가능하다.
+연결 경로는 오프라인 fixture로 검증했고, 격리된 로컬 SBOM 샘플에서 전체 매칭의
+실서비스 호출과 결과 DB 저장·조회를 확인했다. KEV 스냅샷을 실행당 한 번 저장하는
+최종 변경 후 전체 테스트 73개와 실조회 재실행도 통과했다. EOL은 확장 범위이며 첫
+Lab 연동은 공통 지원 작업에 남아 있다. 계약·출처·한계는
+[취약점 모듈 문서](core/vulnerability/README.md)를 참조한다.
 
 ---
 
-# 9. Phase 4. Rule-based Risk Engine
+# 10. Phase 5. Rule-based Risk Engine
 
 ## 목표
 
@@ -433,7 +475,7 @@ EOL
 - 모든 계산 근거 추적 가능
 - CVSS와 내부 Priority를 구분
 
-## 초기 Risk Factor 후보
+## 구현된 Risk Factor (규칙 버전 1.0)
 
 ```text
 CVSS
@@ -441,10 +483,11 @@ CISA KEV
 Production 여부
 Internet Exposure
 Business Criticality
-EOL 여부
-Patch Delay
+패치 기한 초과 여부 (`overdue`)
 Credit Information 처리 여부
 ```
+
+EOL은 Phase 4의 검증된 입력이 없어 점수에서 제외하고 미평가로 표시한다. 패치 지연 **일수**는 입력에 없으므로 추정하지 않는다. 점수와 정책 근거는 [위험 모델 문서](docs/risk_model.md)를 따른다.
 
 ## 구현 위치
 
@@ -464,52 +507,58 @@ KEV = YES          +30
 Internet Exposure  +15
 Production         +10
 Critical Service   +10
-EOL                 +10
+Patch Overdue       +5
+Credit Information  +5
 ```
 
 ## 결과 예시
 
 ```json
 {
+  "cve_id": "CVE-2021-44228",
+  "cvss_score": 9.8,
   "score": 95,
   "priority": "P1",
-  "reasons": [
-    "CVSS >= 9.0: +30",
-    "CISA KEV: +30",
-    "Internet Exposure: +15",
-    "Production: +10",
-    "Critical Service: +10"
-  ]
+  "applied_rules": [
+    {"factor": "cvss", "reason": "CVSS >= 9.0", "points": 30},
+    {"factor": "kev", "reason": "CISA KEV registered", "points": 30},
+    {"factor": "internet_exposure", "reason": "Internet exposed", "points": 15},
+    {"factor": "production", "reason": "Production environment", "points": 10},
+    {"factor": "business_criticality", "reason": "Critical service", "points": 10}
+  ],
+  "unassessed_factors": ["eol"],
+  "rule_version": "1.0"
 }
 ```
 
 ## 작업
 
-- [ ] Risk Factor 확정
-- [ ] Weight 정의
-- [ ] `rules.py`
-- [ ] `engine.py`
-- [ ] `priority.py`
-- [ ] P1 / P2 / P3 / P4 Threshold 확정
-- [ ] 계산 근거 반환
-- [ ] Rule Version 관리 검토
+- [x] 검증된 입력으로 계산 가능한 Risk Factor 확정 (EOL 제외)
+- [x] Weight 정의
+- [x] `rules.py`
+- [x] `engine.py`
+- [x] `priority.py`
+- [x] P1 / P2 / P3 / P4 Threshold 확정
+- [x] 계산 근거 및 미평가 요소 반환
+- [x] Rule Version `1.0` 결과 포함
 
 ## 테스트
 
-- [ ] 동일 입력 동일 결과
-- [ ] Boundary Test
-- [ ] KEV 영향 확인
-- [ ] Internet Exposure 영향 확인
-- [ ] Business Criticality 영향 확인
-- [ ] Missing Context 처리
+- [x] 동일 입력 동일 결과
+- [x] Boundary Test
+- [x] KEV 영향 확인
+- [x] Internet Exposure 영향 확인
+- [x] Business Criticality 영향 확인
+- [x] Missing Context 처리
+- [x] 비성공 매칭·CVSS 누락·KEV 불일치 거부
 
 ## 완료 조건
 
-Priority와 그 이유를 모두 반환한다.
+CVE별 Priority, 총점, 적용 규칙과 점수별 이유, 미평가 요소를 반환한다. Phase 6 Finding 생성과 DB 저장은 포함하지 않는다.
 
 ---
 
-# 10. Phase 5. Finding Management
+# 11. Phase 6. Finding 생성
 
 ## 목표
 
@@ -531,8 +580,9 @@ Finding
 
 ```text
 database/models/finding.py
-core/
-app/api/findings.py
+core/findings/service.py
+database/repositories/finding_repository.py
+database/migrations/0003_findings.sql
 ```
 
 ## Finding Status
@@ -547,14 +597,23 @@ Verification Failed
 Risk Accepted
 ```
 
+Phase 6은 `Open` 생성과 초기 상태 이력을 구현했다. Phase 8은 조치 계획 시
+`Recommendation Created`, 수행 증거 기록 시 `Remediation Applied` 전이를 추가했다.
+기존 Open 이벤트는 유지한다. Verification 이후 상태는 후속 Phase 범위다.
+
+Finding 식별자는 `(asset_id, cve_id)`다. 같은 자산·CVE의 재분석은 Finding을
+재사용하고 매칭 증거 행마다 불변 관측 이력을 추가한다. 같은 매칭 실행을 다시
+처리하면 중복 관측을 만들지 않고, 동일 증거에 다른 위험 결과·자산 Context가
+들어오면 충돌로 거부한다. 매칭 실패나 Risk 계산 실패는 Finding을 생성하지 않는다.
+
 ## 작업
 
-- [ ] Finding Model
-- [ ] Finding 생성 로직
-- [ ] 중복 Finding 처리
-- [ ] Finding Status
-- [ ] Finding 조회
-- [ ] Finding History 검토
+- [x] Finding Model
+- [x] Finding 생성 로직
+- [x] 중복 Finding 처리
+- [x] Finding Status (Open 초기 상태만)
+- [x] Finding 조회
+- [x] Finding History 검토 (분석 관측·초기 상태 이력)
 
 ## 완료 조건
 
@@ -562,13 +621,18 @@ Risk Accepted
 
 ---
 
-# 11. Phase 6. Financial Security Control Mapping
+# 12. Phase 7. Recommendation
 
-## 목표
+보안통제를 매핑한 뒤 검증된 분석 결과로 개선안과 검증계획을 생성한다.
+최종 컨설팅 보고서는 Phase 12에서 작성한다.
+
+## 7.1. Financial Security Control Mapping
+
+### 목표
 
 발견된 Finding을 금융권 보안기준과 연결한다.
 
-## 초기 범위
+### 초기 범위
 
 초기에는 범위를 최소화한다.
 
@@ -578,7 +642,7 @@ ISMS-P
 금융분야 오픈소스 관리 관련 기준
 ```
 
-## 원칙
+### 원칙
 
 이 기능은 공식 규정 준수 여부를 판정하지 않는다.
 
@@ -594,7 +658,7 @@ Finding
 관리적 개선 관점
 ```
 
-## 구현 위치
+### 구현 위치
 
 ```text
 core/compliance/
@@ -604,27 +668,38 @@ controls.py
 standards/
 ```
 
-## 작업
+### 구현 상태
 
-- [ ] Security Control Schema
-- [ ] Control Dataset
-- [ ] Finding ↔ Control Mapping
-- [ ] Technical / Administrative 구분
-- [ ] Mapping 근거 저장
+Phase 6의 불변 `finding_observations`에 매핑을 연결한다. 동일 관측·통제는 같은
+근거일 때 재사용하고, 다른 근거로 재처리하면 충돌로 거부한다. 새 분석 관측은 별도
+매핑으로 저장하며 당시의 통제 문서 정보·규칙·관측 사실·이유를 보존한다.
+현재 데이터는 전자금융감독규정 제37조의2 제5항 및 제1호와 ISMS-P 안내서의
+확인된 **기준 영역** 1.2·2.10에 한정된다. ISMS-P 영역은 개별 세부 통제나
+준수 요건으로 해석하지 않는다. 금융분야 오픈소스 관리 가이드의 검증 가능한
+통제 식별자·원문을 확보하지 못해 매핑 데이터에 포함하지 않았다.
 
-## 완료 조건
+### 작업
+
+- [x] Security Control Schema (출처 메타데이터와 유형)
+- [x] 검증된 범위의 Control Dataset (금융규정 조항·ISMS-P 기준 영역)
+- [x] Finding 관측 ↔ Control Mapping
+- [x] Technical / Administrative 구분
+- [x] Mapping 이유·관측 근거·통제 스냅샷 저장 및 조회
+- [ ] 금융분야 오픈소스 관리 가이드의 공식 통제 원문 확인 및 데이터 추가
+
+### 완료 조건
 
 Finding에서 관련 보안통제를 조회할 수 있다.
 
 ---
 
-# 12. Phase 7. AI Consulting
+## 7.2. Recommendation 생성
 
-## 목표
+### 목표
 
 검증된 분석 결과를 기반으로 AI가 컨설팅 내용을 작성한다.
 
-## AI 입력
+### AI 입력
 
 AI에는 구조화되고 검증된 데이터만 제공한다.
 
@@ -642,7 +717,7 @@ Risk Reasons
 Security Control
 ```
 
-## AI 출력
+### AI 출력
 
 ```text
 발견사항
@@ -652,10 +727,10 @@ Security Control
 관리적 개선방안
 임시 완화방안
 Verification Plan
-보고서 초안
+개선안 설명 초안
 ```
 
-## 금지사항
+### 금지사항
 
 AI가 다음을 임의 생성하면 안 된다.
 
@@ -670,7 +745,7 @@ Scanner 결과
 Verification 결과
 ```
 
-## 구현 위치
+### 구현 위치
 
 ```text
 core/consulting/
@@ -678,92 +753,28 @@ core/consulting/
 analyzer.py
 recommender.py
 prompts.py
-report_generator.py
 ```
 
-## 작업
+### 작업
 
-- [ ] Prompt Template
-- [ ] Structured Input
-- [ ] Structured Output
-- [ ] Hallucination 방지 규칙
-- [ ] Recommendation 생성
-- [ ] Verification Plan 생성
-- [ ] AI Error 처리
+- [x] Prompt Template
+- [x] Structured Input
+- [x] Structured Output
+- [x] 허용된 사실 비주장 조치만 선택, 식별자·숫자·완료 상태 주장 차단 및 사실 영역의 코드 생성
+- [x] Recommendation Model 및 저장·조회
+- [x] Recommendation 생성
+- [x] Verification Plan 초안 생성
+- [x] AI Error·거부·응답 형식 오류 처리
 
-## 완료 조건
+### 완료 조건
 
 자동화 결과를 기반으로 설명 가능한 Recommendation을 생성한다.
+검증은 오프라인 fixture와 모의 AI 응답으로 수행했다. 현재 조치 문장의 범위는
+승인된 템플릿으로 제한되며 운영 사용 전 인간 검토가 필요하다.
 
 ---
 
-# 13. Phase 8. First Vulnerable Lab
-
-## 목표
-
-하나의 취약 환경을 만들어 전체 Pipeline을 실제로 검증한다.
-
-## 기본 구조
-
-```text
-labs/<lab-name>/
-├── README.md
-├── vulnerable/
-└── patched/
-```
-
-## Lab README 필수 내용
-
-```text
-취약 Component
-취약 Version
-관련 CVE
-Lab 목적
-개선 방법
-Verification 방법
-실행 방법
-```
-
-## 첫 번째 Lab 선정 기준
-
-- SBOM에서 Component 식별이 명확할 것
-- CVE Mapping이 명확할 것
-- 취약 버전 / 개선 버전 구분이 명확할 것
-- Before / After 검증이 가능할 것
-- 실습환경에서 안전하게 재현 가능할 것
-
-## 작업
-
-- [ ] 첫 Lab 선정
-- [ ] vulnerable 환경 작성
-- [ ] patched 환경 작성
-- [ ] SBOM 생성 확인
-- [ ] CVE Mapping 확인
-- [ ] Risk 계산 확인
-- [ ] 개선 시나리오 작성
-- [ ] Verification 방법 작성
-
-## 완료 조건
-
-```text
-Vulnerable
-↓
-Detection
-↓
-Recommendation
-↓
-Patched
-↓
-Re-scan
-↓
-Verification
-```
-
-전체 흐름이 가능하다.
-
----
-
-# 14. Phase 9. Remediation Management
+# 13. Phase 8. Remediation
 
 ## 목표
 
@@ -782,27 +793,31 @@ Remediation
 ## 구현 위치
 
 ```text
-database/models/recommendation.py
 database/models/remediation.py
-app/api/remediation.py
+database/repositories/remediation_repository.py
+core/remediation/service.py
+database/migrations/0006_remediations.sql
 ```
 
 ## 작업
 
-- [ ] Recommendation Model
-- [ ] Remediation Model
-- [ ] 조치 상태 관리
-- [ ] Before 상태 저장
-- [ ] 조치 내용 기록
-- [ ] After 분석과 연결
+- [x] Remediation Model (계획과 적용 기록 분리)
+- [x] 조치 상태 관리 (Planned/Applied, Finding의 두 전이)
+- [x] Before 상태 저장 (구성요소·버전·CVE·Risk 근거의 불변 스냅샷)
+- [x] 조치 내용·담당자·시점·수행 증거·출처 기록
+- [x] After 분석과 연결 (Phase 9 검증 시도·증거 참조)
 
 ## 완료 조건
 
-어떤 Finding에 어떤 개선조치가 적용되었는지 추적할 수 있다.
+Recommendation·분석 관측·Finding에 묶인 조치 계획과 증거가 있는 적용 기록을
+조회할 수 있다. 같은 조치 키의 재실행은 멱등이며 추가 조치와 재분석 이력을 보존한다.
+이 단계의 `Applied`는 수행 증거의 기록 상태로, 취약점 제거 판정이 아니다.
+오프라인 통합 테스트는 생성·조회·소속 불일치·무증거 적용 거부·상태 전이·멱등성·
+여러 조치·제약·롤백·마이그레이션을 확인한다. API 연결은 후속 작업이다.
 
 ---
 
-# 15. Phase 10. Verification Engine
+# 14. Phase 9. Verification
 
 ## 목표
 
@@ -837,20 +852,23 @@ sbom_verify.py
 vulnerability_verify.py
 functional_verify.py
 comparison.py
+
+core/sbom/diff.py
 ```
 
 ## 작업
 
-- [ ] Before Snapshot
-- [ ] After Snapshot
-- [ ] SBOM Diff
-- [ ] Version 비교
-- [ ] CVE 재매칭
-- [ ] Scanner Re-scan 연동
-- [ ] Verification Rule
-- [ ] Evidence 저장
-- [ ] Passed 처리
-- [ ] Failed 처리
+- [x] Phase 8 불변 Before Snapshot·적용 기록 연결 및 소속 검증
+- [x] 별도 After Evidence (SBOM·구성요소·재분석·기능 테스트 및 출처·수집 시점)
+- [x] SBOM Diff (발생 보존, 추가·제거·버전/발생 수 변경)
+- [x] Version 비교 (기존 버전 잔존·미식별 구성요소는 실패)
+- [x] Phase 4 CVE 재매칭 결과 연결 (After SBOM 전체 구성요소 범위)
+- [x] Scanner Re-scan 구조화 결과 입력·저장·판정
+- [ ] 실제 Scanner 및 기능 테스트 실행 도구 연동
+- [x] 결정적 Verification Rule 및 판정 이유·규칙 버전 보존
+- [x] 불변 Evidence·시도·판정 저장, 멱등성 및 반복/추가 조치 이력
+- [x] In Progress·Passed 상태와 Finding 이력의 원자적 전이
+- [x] Failed 처리 (증거 누락·모순·오류 포함)
 - [ ] Risk Accepted 처리
 
 ## Verification 예시
@@ -879,11 +897,20 @@ Verification Passed
 
 ## 완료 조건
 
-개선 성공/실패를 Evidence와 함께 반환한다.
+적용된 Remediation을 기준으로 개선 성공/실패를 별도 After Evidence와 함께 반환한다.
+동일 증거 재전달은 멱등이고 새 검증은 과거 Before Snapshot과 이유를 덮어쓰지 않는다.
+오프라인 테스트로 정상·실패·누락·불일치·소속·상태·멱등성·반복·DB 제약·롤백·
+Phase 8→9 마이그레이션을 확인했다. 기존 매칭·위험·Finding 식별·Recommendation
+사실 검증 및 Phase 8 Before 정책은 유지한다.
+
+실제 Scanner/기능 테스트 실행과 첫 Lab 연동은 아직 검증하지 않았다.
+Risk Accepted는 검증 통과로 처리하지 않으며 승인 주체·사유·시점을 갖춘 별도 절차가
+구현되기 전까지 미지원이다. 상세 계약과 남은 연동은 `docs/verification.md`에 기록한다.
+Phase 10 화면용 집계와 Phase 11 이후 기능은 이번 구현에 포함하지 않는다.
 
 ---
 
-# 16. Phase 11. Before / After Comparison
+# 15. Phase 10. Before / After
 
 ## 목표
 
@@ -905,21 +932,37 @@ Verification Status
 
 ## 작업
 
-- [ ] Before Snapshot
-- [ ] After Snapshot
-- [ ] Diff Engine
-- [ ] 증감 계산
-- [ ] Finding별 비교
-- [ ] Asset별 비교
-- [ ] Dashboard용 데이터 생성
+- [x] Before Snapshot (Phase 8 및 선택한 Phase 9 시도의 사본 재사용)
+- [x] After Snapshot (선택한 시도의 불변 After Evidence 재사용)
+- [x] Phase 9의 SBOM Diff를 재사용한 비교 집계
+- [x] 증감 계산 (값·분석 범위가 확인되는 항목에 한정)
+- [x] Finding별 비교
+- [x] Asset별 비교 (명시적 시도 선택 및 동일 증거 범위 확인)
+- [x] Dashboard용 데이터 생성 (UI와 무관한 구조화 데이터; 화면 연결 제외)
 
 ## 완료 조건
 
-사용자가 개선 전·후 차이를 한 화면에서 확인할 수 있다.
+개선 전·후 차이를 근거와 함께 구조화 데이터로 반환한다. 화면 연결은 Phase 11에서 수행한다.
+
+`core/verification/comparison.py`의 `ComparisonService`와 읽기 전용
+`database/repositories/comparison_repository.py`를 추가했다. 새 테이블·마이그레이션·
+Dependency는 없다. 구성요소 발생을 보존하고 CVE와 Finding은 자산+CVE 기준으로
+중복 계산하지 않는다. Failed와 반복 검증은 선택한 시도의 원래 상태·근거를 유지한다.
+
+기존 Before 사본에는 전체 취약점 분석이 없으므로 자산 전체 Before CVE·Critical·KEV
+수는 미확인이다. 단일 구성요소 전체 목록에서 그 발생의 취약성이 확인되면 취약
+구성요소 수 1은 반환할 수 있다. After는 모든 발생의 완전한 재매칭에서만 전체
+취약점 수를 집계한다. 특정 CVE의 Scanner 결과는 해당 Finding에만 적용한다.
+After Risk·우선순위·EOL 자료가 없으면 `None`을 반환하며 임의로 0을 만들지 않는다.
+전체 자산 Risk Score의 합산 규칙도 새로 정의하지 않았다.
+
+정상 비교·누락·범위 불일치·중복·소속 오류·Failed·반복 시도 선택·과거 Snapshot
+보존·결정적 집계를 신규 오프라인 테스트 25개로 검증했다. 전체 163개가 통과했다.
+실제 Scanner 실행, 첫 Lab, 위험 수용 승인, Dashboard·API 및 보고서는 후속 범위다.
 
 ---
 
-# 17. Phase 12. Dashboard
+# 16. Phase 11. Dashboard
 
 ## 목표
 
@@ -962,7 +1005,7 @@ Verification Status
 
 ---
 
-# 18. Phase 13. Final Report
+# 17. Phase 12. AI Consulting Report
 
 ## 목표
 
@@ -987,6 +1030,10 @@ Before / After
 최종 상태
 ```
 
+## 구현 위치
+
+`core/consulting/report_generator.py`
+
 ## 작업
 
 - [ ] Report Data Model
@@ -1001,32 +1048,150 @@ Before / After
 
 ---
 
-# 19. Phase 14. Additional Scenarios
+# 18. 공통 지원 작업
 
-첫 번째 End-to-End Pipeline이 완료된 이후에만 진행한다.
+아래 작업은 Phase 1~12의 번호를 바꾸지 않고 필요한 단계와 함께 진행한다.
+SBOM 생성·저장과 첫 Lab 연결은 실제 대상의 분석에 필요하며, 전체 통합 검증은
+첫 MVP 완료 조건이다. 파서는 합성 fixture로 독립 검증할 수 있다.
 
-## 후보
+## SBOM 생성 및 저장
 
-- [ ] 추가 취약 Component
-- [ ] 장기 미패치 Scenario
-- [ ] EOL Component
-- [ ] Historical KEV Replay
-- [ ] Vendor Risk
-- [ ] Dependency Change Detection
-- [ ] 악성 Package Intelligence
-- [ ] Typosquatting
-- [ ] CI/CD Artifact 변경
-- [ ] Supply Chain Incident
+### 구현 위치
 
-## 원칙
+- `core/sbom/generator.py`: 생성 도구 실행
+- `scripts/generate_sbom.py`, `scripts/import_sbom.py`: core 호출
+- `database/models/`, `database/`: SBOM·Component 저장 및 마이그레이션
 
-추가 기능 때문에 MVP 안정성을 깨뜨리지 않는다.
+### 작업
+
+- [x] SBOM 생성 도구 선정 (Syft)
+- [x] SBOM 생성 Wrapper 및 도구 오류·Timeout 처리 (mock 기반 검증)
+- [x] SBOM / Component DB Model 및 저장
+- [x] Asset ↔ SBOM ↔ Component 관계와 원본 출처 보존
+- [x] 생성 → Parser → Normalizer → 저장 연동 (Syft 1.54.1 격리 샘플 검증)
+- [x] 생성 Wrapper → Parser → Normalizer → DB 저장 모의 연동 테스트
+- [x] 격리된 로컬 샘플로 실제 Syft 생성 및 저장 확인 (2개 Component)
+- [ ] 첫 Lab에서 생성·저장 및 취약점 재분석 검증
+
+### 완료 조건과 시점
+
+Phase 2~3의 입출력 계약과 Phase 1의 자산 모델을 사용한다. 실제 Lab 분석을 연결하기
+전에 생성·저장을 준비하고, Phase 8에서 Before를 보존하며 Phase 9에서 재생성·재분석에
+사용한다. 도구 실행과 저장 테스트를 통과해야 지원 작업 완료로 판단한다.
 
 ---
 
-# 20. Phase 15. End-to-End Integration Test
+## 첫 번째 Lab 및 시연 준비
 
-## 전체 흐름
+실행 준비·기본 명령·core 호출·증거 수집·오류 처리는
+[첫 Lab 실행 가이드](docs/lab_e2e_runbook.md), 단계별 완료 확인은
+[전체 점검표](docs/lab_e2e_checklist.md)를 사용한다. 가이드 작성만으로 아래 구현·실제
+검증 작업을 완료 처리하지 않는다.
+
+### 목표
+
+하나의 취약 환경을 만들어 전체 Pipeline을 실제로 검증한다.
+
+### 기본 구조
+
+```text
+labs/<lab-name>/
+├── README.md
+├── vulnerable/
+└── patched/
+```
+
+### Lab README 필수 내용
+
+```text
+취약 Component
+취약 Version
+관련 CVE
+Lab 목적
+개선 방법
+Verification 방법
+실행 방법
+```
+
+### 준비 상태 (2026-10-14)
+
+기존 `labs/log4shell/`에 공통 Java 서비스, 2.14.1/2.25.5 Maven 빌드,
+호스트 실행·종료 도구, 로컬 전용 Compose와 명시적인 Java 패키지 SBOM 설정을 준비했다.
+공식 체크섬을 확인한 휴대용 JDK·Maven·Syft로 두 빌드·실제 기능·실제 버전·
+생성→Parser→Normalizer→메모리 DB 저장→Diff를 확인했다. 전체 테스트 170개가 통과했다.
+도구·빌드 결과는 Git 제외 경로다. 플랫폼 core·위험·Finding·검증 규칙은 변경하지 않았다.
+
+Docker CLI 설정 검사는 통과했지만 로컬 데몬·WSL2 조건 때문에 컨테이너 기동은
+미검증이다. 호스트 방식은 바로 사용할 수 있다. 기존 18080 사용자는 보존했다.
+위 내용은 최초 준비 시점 기록이다. 2026-10-17 수동 Run과 공통 CLI의 별도 Run에서
+실제 CVE/KEV 재매칭·Risk·조치·Verification·전후 비교를 확인했다(아래 참조).
+실제 AI·Scanner·After Risk·EOL·Docker 기동은 미검증이다. 시나리오 YAML의 기대값을
+실제 실행 결과로 덮어쓰지 않는다.
+
+### 실제 E2E 및 CLI 재현 (2026-10-17)
+
+- 수동 Run `lab-20261017T081606764Z`: 자산 1, Finding 2, 조치 1, 검증 시도 1의
+  `CVE-2021-44228`이 기존 `verification-1.0`에서 Passed. 실제 API/Core는
+  2.14.1 → 2.25.5, 두 After 발생의 재매칭은 NO_MATCH, 필수 HTTP 기능 둘 다 Passed.
+- 수동 실행 이후 전체 테스트 170개 통과. Before 원본·복사본·After digest와
+  비교 결정성을 재조회했다. 다른 Finding 7개는 Open 상태를 유지했다.
+- `python -m scripts.e2e`의 init/before/plan/lab-switch/apply/start/after/compare/status
+  구현. 실행 경로·DB·자산·조치·검증 ID는 인자로 받고 core·Repository를 재사용한다.
+- 별도 Run `e2e-cli-repro-20261017T085443243279Z`와 새 DB·포트 54417에서 실제
+  조회 및 전체 CLI 흐름을 재현하여 Passed. 같은 시도의 after 재실행·compare 결과 일치.
+- 신규 오프라인 22개는 저장 직후 중단 복구, Failed·과거 증거 보존, 명시적 소속,
+  중복 발생/Finding, 진행 중 조회, 파일 잠금, Windows 출력 파일 및 기동 후 재개를 검증한다.
+- 최종 전체 오프라인 테스트 192개(기존 170 + CLI 신규 22) 통과.
+- 수집 전후 소유 서비스·파일 해시 대조를 포함한 최종 CLI를 새 Run
+  `e2e-cli-final-20261017T090107570535Z`·포트 49274에서도 재현하여 Passed.
+  같은 시도 재실행·비교 일치 및 Lab 종료를 확인했다.
+- 두 실제 실행 모두 local-plan-demo. 실 AI·별도 Scanner·After Risk/Context·EOL,
+  전체 Before 분석의 시도별 사본, API·Dashboard·보고서는 남아 있다.
+- CLI 재현을 위한 새 테이블·마이그레이션·Dependency는 없다. SBOM 정확한 문서 복구
+  조회만 Repository에 추가했다. 최신 데이터나 다른 실행의 결과를 보충하지 않는다.
+
+### 첫 번째 Lab 선정 기준
+
+- SBOM에서 Component 식별이 명확할 것
+- CVE Mapping이 명확할 것
+- 취약 버전 / 개선 버전 구분이 명확할 것
+- Before / After 검증이 가능할 것
+- 실습환경에서 안전하게 재현 가능할 것
+
+### 작업
+
+- [x] 첫 Lab 선정 (기존 Log4Shell)
+- [x] vulnerable 환경 작성 (공통 Java 소스·호스트 빌드/기동 검증; Docker 기동 미검증)
+- [x] patched 환경 작성 (같은 기능 계약·별도 런타임·호스트 검증)
+- [x] SBOM 생성 확인 (명시적인 Java 패키지 범위, Before/After 각 2개)
+- [x] CVE Mapping 확인 (실제 호스트 Lab 공개 조회; 지정한 Java 패키지 범위)
+- [x] Risk 계산 확인 (저장된 관측·자산 Context·기존 규칙; After Risk는 미확인)
+- [x] 개선 시나리오 작성 (가상 금융 Context·범위·필수 테스트; 실제 결과 없음)
+- [x] Verification 방법 작성 (기존 규칙·독립 증거·수동 가이드 연결)
+
+### 완료 조건
+
+```text
+Vulnerable
+↓
+Detection
+↓
+Recommendation
+↓
+Patched
+↓
+Re-scan
+↓
+Verification
+```
+
+전체 흐름이 가능하다.
+
+---
+
+## End-to-End Integration Test
+
+### 전체 흐름
 
 ```text
 Asset 등록
@@ -1060,15 +1225,15 @@ Before / After
 Report
 ```
 
-## 확인사항
+### 확인사항
 
 - [ ] 전체 Pipeline 실행 가능
-- [ ] 동일 입력 결과 재현 가능
-- [ ] Risk 계산 근거 확인 가능
+- [x] 동일 입력 결과 재현 가능 (저장된 시도·증거 비교와 CLI 재개; 실조회 시점 차이는 별도)
+- [x] Risk 계산 근거 확인 가능 (선택한 Before 60/P2의 CVSS·KEV 근거)
 - [ ] AI Hallucination 방지
 - [ ] 외부 API 장애 처리
-- [ ] Verification Evidence 존재
-- [ ] Verification Failed 시나리오 동작
+- [x] Verification Evidence 존재 (호스트 Lab의 명시적 시도별 원본·After 사본)
+- [x] Verification Failed 시나리오 동작 (오프라인 오류·기능 실패·반복 시도 테스트)
 - [ ] Risk Accepted 동작
 - [ ] Secret 미포함
 - [ ] Unit Test 통과
@@ -1077,7 +1242,30 @@ Report
 
 ---
 
-# 21. 우선순위
+# 19. MVP 이후 확장: Additional Scenarios
+
+첫 번째 End-to-End Pipeline이 완료된 이후에만 진행한다.
+
+## 후보
+
+- [ ] 추가 취약 Component
+- [ ] 장기 미패치 Scenario
+- [ ] EOL Component
+- [ ] Historical KEV Replay
+- [ ] Vendor Risk
+- [ ] Dependency Change Detection
+- [ ] 악성 Package Intelligence
+- [ ] Typosquatting
+- [ ] CI/CD Artifact 변경
+- [ ] Supply Chain Incident
+
+## 원칙
+
+추가 기능 때문에 MVP 안정성을 깨뜨리지 않는다.
+
+---
+
+# 20. 우선순위
 
 ## Must Have
 
@@ -1116,48 +1304,37 @@ Report
 
 ---
 
-# 22. 개발 의존관계
+# 21. 개발 의존관계
 
-기능은 아래 의존관계를 따른다.
+아래는 모듈 연결 순서다. 개발 Phase는 AGENTS.md §24의 1~12를 따른다.
 
 ```text
-Asset Model
-   │
-   ├──────────────┐
-   │              │
-   ↓              ↓
-SBOM Engine   Asset Context
-   │              │
-   ↓              │
-Vulnerability     │
-Intelligence      │
-   │              │
-   └──────┬───────┘
-          ↓
-      Risk Engine
-          ↓
-        Finding
-          ↓
-  Security Control
-          ↓
-    AI Consulting
-          ↓
-      Remediation
-          ↓
-     Verification
-          ↓
-    Before / After
-          ↓
-       Dashboard
-          ↓
-        Report
+Phase 1 Asset Model / Context
+                +
+기존 SBOM 또는 생성 Wrapper (지원 작업)
+                ↓
+Phase 2 SBOM Parser → Phase 3 Component Normalizer
+                ↓
+Phase 4 CVE / CVSS / CWE / KEV Matcher
+                ↓ + Asset Context
+Phase 5 Rule-based Risk Engine → Phase 6 Finding 생성
+                ↓
+Phase 7 Recommendation (보안통제 매핑 → 개선안·검증계획)
+                ↓
+Phase 8 Remediation → Phase 9 Verification
+                ↓
+Phase 10 Before / After → Phase 11 Dashboard
+                ↓
+Phase 12 AI Consulting Report
 ```
 
-이 의존관계를 무시하고 후속 기능부터 구현하지 않는다.
+SBOM·Component 저장은 생성·정규화 결과와 자산을 연결한다. 첫 Lab의 개선 전후 자료와
+재생성·재분석 기능은 Verification에 필요하다. 모듈별 테스트를 먼저 실행하고 기능을
+연결할 때마다 통합 테스트를 수행한다. 첫 End-to-End 통과 전에는 추가 Lab을 늘리지 않는다.
 
 ---
 
-# 23. 권장 Branch 전략
+# 22. 권장 Branch 전략
 
 예시:
 
@@ -1191,7 +1368,7 @@ fix/verification-result
 
 ---
 
-# 24. 각 Phase 완료 시 확인할 내용
+# 23. 각 Phase 완료 시 확인할 내용
 
 각 Phase 완료 전에 아래를 확인한다.
 
@@ -1207,7 +1384,7 @@ fix/verification-result
 
 ---
 
-# 25. 프로젝트 완료 기준
+# 24. 프로젝트 완료 기준
 
 프로젝트는 단순히 취약점을 탐지하는 것으로 완료되지 않는다.
 

@@ -2,6 +2,16 @@
 
 개선 조치 검증 로직을 관리한다.
 
-패치 후 SBOM 재생성, 구성요소·버전 변경 확인, CVE 재매칭, 재스캔, 서비스 기능 점검 및 이전 결과와의 비교를 통해 개선 완료 여부를 판단할 계획이다. 점수가 낮아졌다는 이유만으로 성공 처리하지 않는다.
+`VerificationService`가 적용된 Remediation과 Before Snapshot을 검증 시도에 연결하고,
+조치 후 SBOM·구성요소·Phase 4 재매칭 또는 Scanner·기능 테스트 결과를 별도 불변
+After Evidence로 저장한다. 결정적 규칙으로 Passed/Failed와 이유를 기록한다.
 
-검증 상태는 `Verification In Progress`에서 `Verification Passed` 또는 `Verification Failed`로 기록하고 판단 근거를 남긴다. 관리적 조치는 승인 기록이나 절차 등 이행 증적으로 확인한다. 현재 파일은 구현 전의 빈 파일이다.
+`service.py`는 소속 검증과 흐름, `verifier.py`는 판정 조합, `sbom_verify.py`,
+`vulnerability_verify.py`, `functional_verify.py`는 각 증거 검증을 담당한다.
+`core/sbom/diff.py`는 발생별 SBOM 차이를 계산한다. SQL은 VerificationRepository에 있다.
+`comparison.py`의 `ComparisonService`는 선택한 검증 시도의 불변 증거로 Finding·자산별
+전후 값과 출처·범위·증거 ID를 반환한다. SQL 조회는 ComparisonRepository에 있으며
+상태·판정·Snapshot을 수정하지 않는다. UI 연결은 Phase 11 범위다.
+
+입력 계약, 상태·멱등성, 검증 규칙 및 남은 연동은 [검증 설계](../../docs/verification.md)를 참조한다.
+Phase 10 집계 기준과 미확인 값은 [Before / After 계약](../../docs/before_after.md)을 따른다.

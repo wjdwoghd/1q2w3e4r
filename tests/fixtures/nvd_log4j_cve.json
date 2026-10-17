@@ -1,0 +1,42 @@
+{
+  "totalResults": 1,
+  "vulnerabilities": [
+    {
+      "cve": {
+        "id": "CVE-2021-44228",
+        "sourceIdentifier": "security@apache.org",
+        "published": "2021-12-10T10:15:09.143",
+        "lastModified": "2026-08-11T19:33:44.513",
+        "weaknesses": [
+          {
+            "source": "security@apache.org",
+            "type": "Secondary",
+            "description": [
+              {"lang": "en", "value": "CWE-20"},
+              {"lang": "en", "value": "CWE-400"},
+              {"lang": "en", "value": "CWE-502"}
+            ]
+          },
+          {
+            "source": "nvd@nist.gov",
+            "type": "Secondary",
+            "description": [{"lang": "en", "value": "CWE-917"}]
+          }
+        ],
+        "metrics": {
+          "cvssMetricV31": [
+            {
+              "source": "nvd@nist.gov",
+              "type": "Primary",
+              "cvssData": {
+                "version": "3.1",
+                "baseScore": 10.0,
+                "vectorString": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "Local Log4j Banking API",
+  "environment": "development",
+  "internet_exposed": false,
+  "business_criticality": "low",
+  "customer_information": false,
+  "credit_information": false,
+  "patch_status": "unknown",
+  "vendor": "Isolated Lab",
+  "owner": "Lab operator"
+}

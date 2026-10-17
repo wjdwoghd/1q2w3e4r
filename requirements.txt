@@ -1,0 +1,2 @@
+# PURL parsing and ecosystem normalization in core/sbom/normalizer.py.
+packageurl-python==0.17.6

@@ -1,0 +1,48 @@
+name: sbom-log4shell
+
+services:
+  vulnerable:
+    profiles: [before]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        LAB_VARIANT: vulnerable
+    image: sbom-log4shell-vulnerable:local
+    ports:
+      - "127.0.0.1:${LAB_PORT:-18080}:8080"
+    read_only: true
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m"]
+    mem_limit: 512m
+    pids_limit: 128
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xms32m -Xmx128m"
+    networks: [isolated]
+
+  patched:
+    profiles: [after]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        LAB_VARIANT: patched
+    image: sbom-log4shell-patched:local
+    ports:
+      - "127.0.0.1:${LAB_PORT:-18080}:8080"
+    read_only: true
+    init: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=32m"]
+    mem_limit: 512m
+    pids_limit: 128
+    environment:
+      JAVA_TOOL_OPTIONS: "-Xms32m -Xmx128m"
+    networks: [isolated]
+
+networks:
+  isolated:
+    internal: true

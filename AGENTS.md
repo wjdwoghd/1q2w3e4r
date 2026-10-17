@@ -1236,77 +1236,32 @@ xgboost
 
 # 24. MVP Development Order
 
-현재 권장 구현 순서는 다음과 같다.
+아래 표를 Phase 번호와 기능 범위의 기준으로 사용한다. ROADMAP.md는 같은 번호와
+범위로 세부 작업·완료 조건·진행상태를 관리한다. 단계 변경 시 두 문서를 함께 수정한다.
 
-Phase 1
+| Phase | 기능 | 범위 |
+| --- | --- | --- |
+| 1 | Asset Model | 금융서비스·자산 모델, Context 및 등록/조회 |
+| 2 | SBOM Parser | 기존 SBOM에서 구성요소 추출 및 입력 오류 처리. 초기 지원은 CycloneDX JSON이며 생성·정규화·DB 저장은 제외 |
+| 3 | Component Normalizer | 구성요소 이름·버전·PURL·공급자 정규화 및 중복 처리 정책 |
+| 4 | CVE / CVSS / CWE / KEV Matcher | 구성요소와 CVE 연결, CVSS·CWE·KEV 수집 |
+| 5 | Rule-based Risk Engine | 규칙 기반 점수·대응 우선순위·계산 근거 |
+| 6 | Finding 생성 | 자산과 취약점 기반 Finding 생성·상태·이력 |
+| 7 | Recommendation | 보안통제 매핑, 검증된 입력 기반 개선안 및 Verification Plan 초안 |
+| 8 | Remediation | 실제 조치와 Before 상태·조치 이력 관리 |
+| 9 | Verification | 재분석 및 독립 Evidence에 따른 개선 검증 |
+| 10 | Before / After | 개선 전후 비교 결과와 화면용 데이터 구성 |
+| 11 | Dashboard | 서버/API를 통한 분석 결과·근거 표시 |
+| 12 | AI Consulting Report | 검증된 전체 결과를 이용한 AI 컨설팅 보고서 |
 
-Asset Model
+Phase 0은 설계·저장소 초기화 준비 단계다. SBOM 생성 도구/Wrapper, SBOM·Component
+저장, 첫 Lab 및 통합 테스트는 별도 번호를 부여하지 않는 지원 작업이다.
+이 작업들을 생략하는 것이 아니라 ROADMAP.md의 지원 작업 절에 따라 병행한다.
+생성·저장은 실제 대상 연결 전에, 첫 Lab과 End-to-End 검증은 MVP 완료 전에 필요하다.
+추가 Lab·Scenario는 첫 End-to-End Pipeline 완료 이후로 둔다.
 
-↓
-
-Phase 2
-
-SBOM Parser
-
-↓
-
-Phase 3
-
-Component Normalizer
-
-↓
-
-Phase 4
-
-CVE / CVSS / CWE / KEV Matcher
-
-↓
-
-Phase 5
-
-Rule-based Risk Engine
-
-↓
-
-Phase 6
-
-Finding 생성
-
-↓
-
-Phase 7
-
-Recommendation
-
-↓
-
-Phase 8
-
-Remediation
-
-↓
-
-Phase 9
-
-Verification
-
-↓
-
-Phase 10
-
-Before / After
-
-↓
-
-Phase 11
-
-Dashboard
-
-↓
-
-Phase 12
-
-AI Consulting Report
+Phase는 권장 개발 순서이며 런타임 파이프라인의 실행 순서나 앞 단계 완료의 증거가 아니다.
+현재 구현 상태와 검증 결과는 ROADMAP.md와 관련 기능 문서에서 확인한다.
 
 
 # 25. Definition of Done

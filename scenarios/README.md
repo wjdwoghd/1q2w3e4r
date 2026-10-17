@@ -10,4 +10,8 @@
 | `scenario_02_kev_replay.yaml` | 과거 KEV 등록정보 변화를 반영한 동일 자산 재평가 | 확장 |
 | `scenario_03_vendor_risk.yaml` | 공급업체 사고와 연결된 구성요소·자산·금융서비스 영향 분석 | 확장 |
 
-현재 YAML 파일은 빈 파일이다. 시연 결과와 개선 수치를 실제 측정 결과처럼 미리 확정하지 않는다.
+`scenario_01_patch_delay.yaml`은 기존 Log4Shell Lab의 가상 금융 Context·분석 범위·
+선언 버전·필수 테스트·증거 요구사항을 기록한다. 실제 CVSS·KEV·Risk·최종 판정은
+null로 두며 수집 결과에서 확인한다. YAML을 자동으로 플랫폼에 가져오는 CLI/로더는
+아직 없으므로 실행 가이드에서 검토한 Context로 자산을 명시 등록한다.
+나머지 확장 YAML은 자리 파일이다. 시연 수치를 측정 결과처럼 미리 확정하지 않는다.
