@@ -4,14 +4,16 @@
 
 > Phase 1~10의 core·Repository와 첫 호스트 Lab E2E를 검증했다. 2026-10-17에는
 > 공통 CLI의 새 Run에서도 선택한 CVE의 Verification Passed와 반복 조회를 확인했다.
-> Recommendation은 로컬 연결 점검 모드다. 실 AI·Scanner·After Risk·EOL,
-> API·Dashboard·보고서는 남아 있다. 상세 상태는 ROADMAP.md를 따른다.
+> Recommendation은 로컬 연결 점검 모드다. Phase 11의 읽기 전용 Flask API·Streamlit
+> Dashboard MVP를 추가했다. 실 AI·Scanner·After Risk·EOL, Phase 11 전체 및 보고서는
+> 남아 있다. 실행·검증 범위는 [Dashboard 가이드](docs/dashboard.md)와 ROADMAP.md를 따른다.
 
 기획 기준: [프로젝트 Notion 문서](https://app.notion.com/p/SBOM-3e24a9a6169880f6bc91dd3d61a376ac)
 
 ## 주요 문서
 
 - [개발 로드맵](./ROADMAP.md)
+- [읽기 전용 Dashboard 실행·DB 선택·조회 계약](./docs/dashboard.md)
 - [첫 Lab End-to-End 실행 가이드](./docs/lab_e2e_runbook.md)
 - [첫 Lab 전체 점검표](./docs/lab_e2e_checklist.md)
 - [GitHub 협업 원칙](./docs/github_collaboration.md)
@@ -105,7 +107,9 @@ Open -> Recommendation Created -> Remediation Applied
      -> Verification In Progress -> Verification Passed / Verification Failed
 ```
 
-대시보드에서는 취약 구성요소, 심각한 CVE, KEV, P1/P2 건수, 검증 완료 조치 등을 개선 전후로 비교할 계획이다. EOL 현황은 확장 범위에 포함한다.
+읽기 전용 대시보드에서는 명시적으로 선택한 검증 시도의 구성요소·CVE·KEV·내부 우선순위·
+Risk와 원래 판정을 기존 비교 결과 범위에서 표시한다. After Risk·EOL 및 전체 Before 분석이
+없으면 미확인과 사유를 유지한다. 자세한 범위는 [Dashboard 가이드](docs/dashboard.md)를 따른다.
 
 ## MVP 및 확장 범위
 
@@ -289,16 +293,16 @@ vulnerable/ -> SBOM 생성 -> 취약점 발견 -> 개선방안
 
 | 구분 | 계획 |
 | --- | --- |
-| 분석 플랫폼 | Python, Flask API, Streamlit 대시보드 |
+| 분석 플랫폼 | Python, Flask 조회 API, Streamlit 읽기 전용 대시보드 MVP |
 | SBOM | CycloneDX를 기본 형식으로 고려, Syft 등 기존 생성 도구 활용 검토 |
 | 위험평가 | 설명 가능한 규칙 기반 엔진 |
 | AI 컨설팅 | OpenAI API로 검증된 분석 결과 해석 및 문서 생성 |
-| 데이터베이스 | 연결 설정, 도메인 엔티티, 마이그레이션 관리; DB 제품 및 라이브러리 미확정 |
+| 데이터베이스 | 표준 라이브러리 SQLite·기존 Repository·명시적 마이그레이션; 운영 DB 제품 미정 |
 | 실습환경 | 플랫폼과 분리된 Docker Compose 구성 계획 |
 
-현재 Python 요구사항은 `packageurl-python`이며 core·Repository와 오프라인 테스트가
-구현돼 있다. 일반 분석 CLI는 아직 자리 파일이고 첫 Lab에는 별도 PowerShell 빌드·
-호스트 실행 도구와 Compose 정의가 있다. 실조회 보조 CLI,
+현재 Python 요구사항은 `packageurl-python`, 로컬 조회용 `Flask`·`streamlit`이다.
+core·Repository·공통 E2E CLI와 오프라인 테스트가 구현돼 있다. 첫 Lab에는 PowerShell 빌드·
+호스트 실행 도구와 Compose 정의가 있다. 공통 CLI와 실조회 보조 CLI,
 기본 환경 점검과 Lab 준비 이후의 실행 절차는 [실행 가이드](./docs/lab_e2e_runbook.md)를 따른다.
 
 API 키 등 실제 비밀값은 로컬 `.env`에만 등록한다. `.env.example`에는 변수명과 공개 가능한 기본값만 둔다.

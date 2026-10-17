@@ -1,2 +1,5 @@
 # PURL parsing and ecosystem normalization in core/sbom/normalizer.py.
 packageurl-python==0.17.6
+# Local read-only API and Dashboard (no additional analysis framework).
+Flask==3.1.3
+streamlit==1.57.0

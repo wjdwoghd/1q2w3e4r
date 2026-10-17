@@ -72,7 +72,7 @@ Report
 
 ## Current Phase
 
-**최근 구현: Phase 10 시도별 Before / After 비교·구조화 집계**
+**최근 구현: Phase 11 읽기 전용 API·Dashboard MVP (Phase 11 전체는 진행 중)**
 
 Phase 1의 금융서비스·자산 등록/조회와 SQLite 저장, Context 검증이 구현되었다.
 Phase 3은 기존 작업을 보존해 packageurl 의존성을 설치하고 정규화 규칙을 수정하여
@@ -107,6 +107,15 @@ Finding·자산 비교를 구현했다. 명시적으로 선택한 Remediation·V
 미확인 자료는 `None`과 사유로 반환한다. 전체 오프라인 테스트 163개(기존 138개 +
 Phase 10 신규 25개)가 통과했다. Dashboard·API 화면 연결·보고서는 구현하지 않았다.
 자세한 계약과 현재 증거로 확인할 수 없는 값은 [Before / After 문서](docs/before_after.md)를 따른다.
+
+2026-10-17 Phase 11 조회 MVP는 Flask API → 기존 core Service → Repository를 통해
+금융서비스·자산·SBOM·Finding 관측·Risk 근거·Recommendation·Remediation·검증 시도를
+Streamlit에서 조회한다. 선택한 한 시도의 Finding·자산 Before / After는 Phase 10을
+재사용하며 명시적 ID·소속 확인, 미확인/비교 불가와 원래 판정을 보존한다.
+기존 Lab DB와 공통 CLI DB를 각각 로컬 서버·실제 HTTP·AppTest로 조회했고 DB 파일
+해시 불변을 확인했다. 전체 오프라인 테스트 208개(기존 192 + 신규 16)가 통과했다. 브라우저 육안 검사·운영
+인증/권한·다중 시도 공동 집계 UI·보고서는 남아 있으며 Phase 11 전체 완료를 뜻하지 않는다.
+[실행·조회 계약과 검증 범위](docs/dashboard.md)를 따른다.
 
 ## Progress
 
@@ -989,19 +998,30 @@ After Risk·우선순위·EOL 자료가 없으면 `None`을 반환하며 임의�
 
 ## 작업
 
-- [ ] Asset 화면
-- [ ] SBOM 화면
-- [ ] Vulnerability 화면
-- [ ] Risk 화면
-- [ ] Finding 화면
-- [ ] Remediation 화면
-- [ ] Verification 화면
-- [ ] Before / After 화면
+- [x] Asset 조회 섹션 (금융서비스·자산·Context, 읽기 전용 MVP)
+- [x] SBOM 조회 섹션 (SBOM·중복 구성요소 발생, 읽기 전용 MVP)
+- [x] Vulnerability 조회 섹션 (관측별 CVE·CVSS·CWE·KEV·출처)
+- [x] Risk 조회 섹션 (저장된 점수·내부 우선순위·가점 근거)
+- [x] Finding 조회 섹션 (자산+CVE 식별·관측·이력)
+- [x] Recommendation·Remediation 조회 섹션 (연결 ID·개선안·계획·적용 기록)
+- [x] Verification 조회 섹션 (시도 명시 선택·원래 판정·기능 결과)
+- [x] Before / After 조회 섹션 (선택한 한 시도의 Finding·자산 범위)
+- [x] GET API·읽기 전용 DB·화면 선택 초기화·오프라인 조회 불변성 검사
+- [x] 기존 Lab DB와 새 공통 CLI DB의 실제 로컬 서버 조회 확인 (AppTest·HTTP)
+- [ ] 브라우저 육안·해상도·사용성 확인
+- [ ] 운영 인증/권한 및 대용량 조회·페이지네이션 검증
+- [ ] 여러 Finding·검증 시도의 동시 선택·공동 집계 UI
 - [ ] Report 화면
 
 ## 완료 조건
 
 최소 Demo Flow를 Dashboard에서 수행할 수 있다.
+
+**진행 중 — 읽기 전용 MVP 구현.** 이번 작업은 저장된 결과 조회에 한정하며 분석·패치·
+Scanner·재판정·위험 수용 승인을 실행하지 않는다. Phase 11 전체 완료나 Phase 12 착수를
+표시하지 않는다. 현재 UI는 기존 빈 페이지 파일을 보존한 단일 화면의 탭·상세 섹션이다.
+전체 Phase 11 확장 작업의 승인·우선순위는 별도 요청으로 정한다.
+실행·API·데이터 흐름·증거 기준·검증 결과는 [Dashboard 문서](docs/dashboard.md)를 따른다.
 
 ---
 
