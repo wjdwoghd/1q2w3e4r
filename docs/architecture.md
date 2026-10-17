@@ -88,3 +88,17 @@ Repository 및 정확한 SBOM 문서 복구 조회에만 있다.
 출력 PIPE를 유지하여 CLI 종료가 지연되는 Windows 문제를 피하려고 stdout/stderr를
 일반 파일에 기록한다. 기동 후 중단되면 소유 프로세스·실제 버전·기동 시점·파일 해시를
 대조해 같은 변경을 재개하고 서비스를 중복 기동하지 않는다. 이 어댑터는 Lab 전용이다.
+
+## Phase 11 읽기 전용 조회 MVP
+
+`app/dashboard/Home.py` → HTTP `DashboardClient` → Flask `app/api/dashboard.py`
+→ `core/dashboard/service.py` 읽기 facade → 기존 core 조회 서비스 → Repository를 따른다.
+새 `SQLiteDashboardRepository`는 기존에 없던 자산별 SBOM 목록만 보완한다.
+시도별 비교·집계는 기존 `ComparisonService`와 `SQLiteComparisonRepository`를 재사용한다.
+화면에는 선택·출력 형식만 있고 CVE 조회·Risk 계산·Scanner·재판정을 실행하지 않는다.
+
+서버 설정의 DB 별칭을 사용자가 명시적으로 선택한다. 요청별 SQLite 읽기 전용 연결과
+읽기 트랜잭션을 사용하고 스키마 초기화·변경을 하지 않는다. 화면은 부모 선택 변경 시
+하위 선택을 초기화한다. 한 시도의 ID·사본·판정을 묶어 전달하며 최신 조치나 최신 시도로
+자동 교체하지 않는다. [실행·API·증거 표시 계약](dashboard.md)을 따른다.
+Phase 4~10 정책·기존 CLI와 DB 스키마는 변경하지 않는다. Phase 12는 제외한다.

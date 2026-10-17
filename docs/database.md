@@ -146,3 +146,13 @@ SBOM 저장 직후 프로세스가 중단된 경우 `SQLiteSBOMRepository.find_b
 재사용하고 여러 행이면 모호성 오류로 중단한다. 최신 행을 선택하거나 구성요소 발생을
 병합하지 않는다. 매칭은 구성요소별 정확한 `analysis_key`, 조치는 action key,
 Verification은 명시적 시도 ID·attempt key의 기존 멱등 계약으로 복구한다.
+
+## Phase 11 읽기 전용 DB 세션
+
+테이블·마이그레이션·식별 정책 변경은 없다. `open_dashboard_database()`는 서버 설정에
+등록한 실행 DB를 `mode=ro`로 열고 `query_only=ON`, 요청별 읽기 트랜잭션을 사용한다.
+없는 파일을 생성하거나 과거 스키마를 자동 마이그레이션하지 않는다. 필요한 테이블이
+없으면 호환성 오류를 반환한다. 조회 종료 시 commit 없이 연결을 닫는다.
+SQL은 기존 Repository 및 SBOM 목록을 보완하는 `SQLiteDashboardRepository`에만 있다.
+API가 경로를 직접 입력받지 않고 DB 별칭만 선택하게 하며 DB 경로는 화면에서 확인한다.
+현재 목록과 과거 시도의 불변 사본은 구분한다. 실행·데이터 흐름은 [Dashboard 문서](dashboard.md)를 따른다.
