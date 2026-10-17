@@ -8,7 +8,6 @@
 > Dashboard MVP를 추가했다. 실 AI·Scanner·After Risk·EOL, Phase 11 전체 및 보고서는
 > 남아 있다. 실행·검증 범위는 [Dashboard 가이드](docs/dashboard.md)와 ROADMAP.md를 따른다.
 
-기획 기준: [프로젝트 Notion 문서](https://app.notion.com/p/SBOM-3e24a9a6169880f6bc91dd3d61a376ac)
 
 ## 주요 문서
 
