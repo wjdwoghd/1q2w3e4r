@@ -16,8 +16,8 @@
 
 ## 실행·점검 문서
 
-- [첫 Lab End-to-End 실행 가이드](./lab_e2e_runbook.md): 기본 PowerShell·도구 준비,
-  Lab 선행 조건, 실제 증거 수집, core 호출 예제, 실패·재개·종료 절차
+- [첫 Lab End-to-End 실행 가이드](./lab_e2e_runbook.md): 공통 CLI 실행·재개,
+  실제 E2E 기록, PowerShell·도구 준비, 증거 수집 및 기존 core 수동 호출 참고
 - [첫 Lab 전체 점검표](./lab_e2e_checklist.md): 단계별 확인·증거 ID·완료 조건 기록 양식
 - [Before / After 계약](./before_after.md): 시도별 비교 범위·집계 기준·미확인 값
 - [Verification 계약](./verification.md): Evidence·판정·이력과 남은 연동

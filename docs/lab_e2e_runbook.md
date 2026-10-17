@@ -1,13 +1,98 @@
 # 첫 Lab End-to-End 실행 가이드
 
-작성 기준: 2026-10-14, Windows PowerShell, 저장소 `C:\1q2w3e4r`, 커밋 `f373307`.
+## 공통 CLI로 반복 실행하기 (2026-10-17)
+
+아래 절차는 Run ID를 코드에 넣지 않는 정식 진입점이다. 이후 1~17절의 Python REPL
+예제는 기존 수동 호출 참고용이다. 과거 실행은 지우지 않고 매번 새 Run을 사용한다.
+자산 Context 샘플은 실제 로컬 개발 환경이며 가상의 Production 설정을 적용하지 않는다.
+Docker·실 AI·Scanner·After Risk·EOL 검증을 완료 처리하지 않는다.
+
+```powershell
+Set-Location -LiteralPath 'C:\1q2w3e4r'
+$taskPython = (Resolve-Path '.venv/Scripts/python.exe').Path
+. .\labs\log4shell\tools.ps1
+$taskTools = Get-LabToolchain
+$taskRun = Join-Path (Get-Location) ('data/output/cli-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfffZ'))
+$taskDb = Join-Path $taskRun 'lab.db'
+$taskCommon = @('--run-dir', $taskRun, '--db', $taskDb)
+$taskPort = 18081 # 빈 로컬 포트. 기존 사용자 프로세스는 종료하지 않는다.
+$taskCollection = @('--syft', $taskTools.Syft, '--syft-config', 'labs/log4shell/syft.yaml', '--base-url', "http://127.0.0.1:$taskPort")
+
+& $taskPython -m scripts.e2e init @taskCommon --asset-context scenarios/local_log4shell.json --business-service 'Synthetic Banking Lab'
+if ($LASTEXITCODE -ne 0) { throw 'init 실패' }
+$taskAssetId = Read-Host '출력의 정확한 asset_id'
+$taskBound = $taskCommon + @('--asset-id', $taskAssetId)
+
+# 도구·두 빌드가 없는 PC는 먼저 아래의 준비 절차를 따른다.
+.\labs\log4shell\build.ps1 -Variant all
+.\labs\log4shell\host.ps1 -Action Start -Variant vulnerable -Port $taskPort
+& $taskPython -m scripts.e2e before @taskBound --source labs/log4shell/vulnerable/target/runtime @taskCollection
+if ($LASTEXITCODE -ne 0) { throw 'Before 중단: 증거를 보존하고 원인 확인' }
+
+# 출력 matches에서 CVE-2021-44228의 정확한 match_run_id를 선택한다.
+$taskMatchId = Read-Host '대상 CVE가 확인된 match_run_id'
+& $taskPython -m scripts.e2e plan @taskBound --match-run-id $taskMatchId --cve CVE-2021-44228 --action-key lab-upgrade --owner 'Lab operator' --planned-action 'Switch to the prepared patched runtime; preserve Before runtime for rollback.' --recommendation-mode local-plan-demo
+if ($LASTEXITCODE -ne 0) { throw '계획 중단' }
+$taskRemediationId = Read-Host '출력의 정확한 remediation_id'
+
+# 실제 교체. 실행 로그·Before 파일을 보존하고 적용 기록을 기존 core에 등록한다.
+& $taskPython -m scripts.e2e lab-switch @taskBound --remediation-id $taskRemediationId --port $taskPort
+if ($LASTEXITCODE -ne 0) { throw '교체 중단: 같은 명령으로 소유 프로세스를 확인하며 재개' }
+& $taskPython -m scripts.e2e start @taskBound --remediation-id $taskRemediationId --attempt-key verify-1 --required-test health-contract --required-test banking-api-smoke
+if ($LASTEXITCODE -ne 0) { throw '검증 시작 중단' }
+$taskVerificationId = Read-Host '출력의 정확한 verification_id'
+
+& $taskPython -m scripts.e2e after @taskBound --remediation-id $taskRemediationId --verification-id $taskVerificationId --source labs/log4shell/patched/target/runtime @taskCollection
+$taskAfterExit = $LASTEXITCODE
+# 0=Passed, 1=Failed(원래 근거 보존), 2=실행 오류. 결과를 고치거나 삭제하지 않는다.
+$taskAfterExit
+& $taskPython -m scripts.e2e compare @taskBound --remediation-id $taskRemediationId --verification-id $taskVerificationId
+& $taskPython -m scripts.e2e status @taskBound
+.\labs\log4shell\host.ps1 -Action Stop -Variant patched
+```
+
+`apply --evidence <JSON>`은 다른 실제 적용 도구가 남긴 action/actor/applied_at/
+evidence_type/evidence_reference/evidence_source를 등록하는 경로다. 적용을 수행하지
+않는 명령이며 계획 문장을 적용 증거로 입력하지 않는다. `lab-switch`만 기존 호스트
+Lab을 제어한다. 일반 운영 시스템의 배포·Scanner 도구는 구현하지 않았다.
+
+중단 시 같은 Run·DB·자산과 동일 인자로 명령을 다시 실행한다. 저장 직후 중단된
+SBOM·매칭·조치·시도를 정확한 키로 복구하며 최신 행을 임의로 선택하지 않는다.
+체크포인트는 `run.json`, 원본·실제 수집 시점·파일 해시는 `before/` 및
+`attempts/<verification_id>/after/`, 원래 판정·비교는 `attempts/<verification_id>/`에 있다.
+증거가 바뀌거나 여러 정확한 SBOM 행이 있으면 중단한다. 실행 중인 동일 Run은 OS 잠금으로
+중복 실행을 막고 종료 시 잠금이 해제된다. 실패한 조회 결과를 다시 수집하려면 새 Run,
+완료된 Verification을 재수집하려면 새 `attempt-key`와 반환된 새 ID를 사용한다.
+
+Windows 기동 출력은 PIPE 대신 명령별 stdout/stderr 파일에 남겨 Java 자식의 EOF를
+기다리지 않는다. 기동이 끝난 직후 CLI가 중단돼도 재개 시 저장된 기동 시점·파일·소유 PID를
+대조하여 서비스를 다시 시작하지 않는다. After 수집 전후에도 같은 소유 서비스를 확인한다.
+이전 수동 Run의 출력 대기 로그와 복구 로그는 원래 Run에 그대로 보존했다.
+
+### 실제 검증 기록
+
+2026-10-17 수동 Run `lab-20261017T081606764Z`에서 시도 1 Passed, 전체 테스트
+170개 통과를 확인했다. 이후 공통 CLI의 별도 Run
+`e2e-cli-repro-20261017T085443243279Z`·새 DB·포트 54417에서도 실제 공개 조회,
+두 패키지 버전 변경·기능 검사·Passed와 동일 시도 재실행/비교 결과 일치를 확인했다.
+두 실행 모두 `local-plan-demo`이며 실 AI·별도 Scanner·After Risk·EOL·Docker 기동은
+미검증이다. 수집 범위는 애플리케이션 Java 패키지이며 OS·JDK를 포함하지 않는다.
+새 CLI의 오프라인 재개·실패 보존 테스트는 `tests.integration.test_e2e_cli`를 따른다.
+최종 소유 서비스 대조를 포함한 CLI는 추가 Run
+`e2e-cli-final-20261017T090107570535Z`·포트 49274에서도 Passed였고,
+전체 오프라인 테스트 192개가 통과했다. 생성된 원본·DB·로그는 Git 제외 경로에 보존한다.
+
+---
+
+이하 수동 가이드의 초기 작성 기준: 2026-10-14, Windows PowerShell,
+저장소 `C:\1q2w3e4r`, 커밋 `f373307`. 현재 공통 CLI와 실 실행 결과는 위 절을 따른다.
 실행할 때는 현재 브랜치·커밋과 도구 버전을 다시 기록한다.
 
 이 문서는 **준비된 로컬 Lab 점검**과 **아직 실행하지 않은 전체 분석·검증 절차**를 구분한다.
 기존 Log4Shell Lab의 서비스·빌드·호스트 실행 도구가 준비됐다. 단계별 확인 기록은
 [첫 Lab 전체 점검표](lab_e2e_checklist.md)를 함께 사용한다.
 
-## 1. 현재 준비 상태
+## 1. 초기 준비 상태 (2026-10-14)
 
 | 항목 | 이번에 확인한 결과 | 해석 |
 | --- | --- | --- |
@@ -19,7 +104,7 @@
 | Syft·Java·Maven | Git 제외 경로에 휴대용 도구 준비 | Syft 1.54.1, JDK 17.0.20.1, Maven 3.9.11; 시스템 PATH 변경 없음 |
 | Log4Shell Lab | 공통 서비스·Before/After 빌드·호스트 도구·Compose 준비 | 두 실제 버전·HTTP·SBOM 경로 검증 |
 | 기본 시나리오 | 선언된 가상 금융 Context·범위·버전·테스트 ID 작성 | 실제 CVSS·KEV·판정·위험 결과는 미확인 |
-| 일반 CLI | 생성·가져오기·동기화·위험 계산·검증 스크립트 0바이트 | 호출 종료 코드 0을 기능 성공으로 해석 금지 |
+| 개별 자리 CLI | 기존 생성·가져오기·동기화·위험 계산·검증 스크립트는 0바이트 | 현재 공통 `scripts.e2e` 사용; 빈 파일의 종료 0은 성공 아님 |
 | 실조회 점검 CLI | `scripts/verify_phase4_live.py` 구현됨 | fixture + 외부 조회 + 메모리 DB 점검; 실제 Lab E2E가 아님 |
 
 초기 문서 작업은 읽기·기본 점검만 수행했다. 이후 Lab 준비에서 공식 체크섬이 확인된

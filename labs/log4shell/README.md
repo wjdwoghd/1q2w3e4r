@@ -129,9 +129,13 @@ docker compose -p sbom-log4shell -f $taskCompose down
 - 명시한 패키지 범위에서 Before/After 각 2개 구성요소, API/Core 버전 변경
 - 전체 오프라인 테스트 170개 통과(기존 163 + Lab 신규 7)
 
-실제 CVE/KEV 조회, Recommendation API, Remediation·Verification 전체 실 시도는
-이번 준비 작업에서 실행하지 않았다. [실행 가이드](../../docs/lab_e2e_runbook.md)의
-자산 등록 이후 절차와 [점검표](../../docs/lab_e2e_checklist.md)로 이어간다.
+위 170개는 최초 Lab 준비 시점의 결과다. 2026-10-17에는 실제 OSV/NVD/KEV 조회,
+조치·After 재생성·전체 재매칭·실제 HTTP 기능 검사·선택한 CVE의 Passed·비교를
+수동 Run 및 공통 CLI의 별도 Run에서 확인했다. Recommendation은 로컬 점검 모드이며
+실 AI·별도 Scanner·After Risk·EOL·Docker 기동은 미검증이다.
+정식 명령은 `python -m scripts.e2e`와 [실행 가이드](../../docs/lab_e2e_runbook.md)를 따른다.
+`runner.py`는 PowerShell 출력에 PIPE를 쓰지 않아 장기 실행 자식의 출력 종료 대기를
+피하고, 기동 후 중단된 변경은 소유 프로세스를 재확인하여 재개한다.
 계획·시나리오의 기대값을 실제 판정으로 입력하지 않는다. rollback은 patched를
 종료하고 보존된 Before runtime을 같은 로컬 포트로 다시 기동하는 절차이며, 수행하면
 그 변경을 별도 기록한다. `target/`·도구 ZIP·JAR·로그·DB는 Git에 넣지 않는다.

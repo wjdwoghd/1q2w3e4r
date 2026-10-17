@@ -137,3 +137,12 @@ SQL 적용 실패 시 ROLLBACK하고 `PRAGMA foreign_keys=ON`을 복구해야 �
 수행하지 않는다. `verification_after_evidence`의 PK인 `verification_id`를 비교 결과의
 증거 식별자로 반환한다. 전체 Before 취약점·After Risk·EOL 자료가 없는 한계를 유지하며
 임의의 Snapshot을 추가하지 않는다. 자세한 범위는 [비교 계약](before_after.md)을 따른다.
+
+## 공통 CLI 재개와 정확한 SBOM 복구
+
+실행 체크포인트는 Git 제외 Run 디렉터리에 두며 DB 테이블·마이그레이션은 추가하지 않는다.
+SBOM 저장 직후 프로세스가 중단된 경우 `SQLiteSBOMRepository.find_by_document()`가
+명시적 자산 ID·출처·원본 문서가 모두 같은 행을 반환한다. 정확한 일치가 하나일 때만
+재사용하고 여러 행이면 모호성 오류로 중단한다. 최신 행을 선택하거나 구성요소 발생을
+병합하지 않는다. 매칭은 구성요소별 정확한 `analysis_key`, 조치는 action key,
+Verification은 명시적 시도 ID·attempt key의 기존 멱등 계약으로 복구한다.

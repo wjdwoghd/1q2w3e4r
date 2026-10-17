@@ -1123,8 +1123,32 @@ Verification 방법
 
 Docker CLI 설정 검사는 통과했지만 로컬 데몬·WSL2 조건 때문에 컨테이너 기동은
 미검증이다. 호스트 방식은 바로 사용할 수 있다. 기존 18080 사용자는 보존했다.
-실제 CVE/KEV 재매칭, AI 호출, 플랫폼 조치·Verification 전체 실 시도는 남아 있다.
-시나리오의 Risk·CVSS·KEV·최종 판정은 미확인으로 유지한다.
+위 내용은 최초 준비 시점 기록이다. 2026-10-17 수동 Run과 공통 CLI의 별도 Run에서
+실제 CVE/KEV 재매칭·Risk·조치·Verification·전후 비교를 확인했다(아래 참조).
+실제 AI·Scanner·After Risk·EOL·Docker 기동은 미검증이다. 시나리오 YAML의 기대값을
+실제 실행 결과로 덮어쓰지 않는다.
+
+### 실제 E2E 및 CLI 재현 (2026-10-17)
+
+- 수동 Run `lab-20261017T081606764Z`: 자산 1, Finding 2, 조치 1, 검증 시도 1의
+  `CVE-2021-44228`이 기존 `verification-1.0`에서 Passed. 실제 API/Core는
+  2.14.1 → 2.25.5, 두 After 발생의 재매칭은 NO_MATCH, 필수 HTTP 기능 둘 다 Passed.
+- 수동 실행 이후 전체 테스트 170개 통과. Before 원본·복사본·After digest와
+  비교 결정성을 재조회했다. 다른 Finding 7개는 Open 상태를 유지했다.
+- `python -m scripts.e2e`의 init/before/plan/lab-switch/apply/start/after/compare/status
+  구현. 실행 경로·DB·자산·조치·검증 ID는 인자로 받고 core·Repository를 재사용한다.
+- 별도 Run `e2e-cli-repro-20261017T085443243279Z`와 새 DB·포트 54417에서 실제
+  조회 및 전체 CLI 흐름을 재현하여 Passed. 같은 시도의 after 재실행·compare 결과 일치.
+- 신규 오프라인 22개는 저장 직후 중단 복구, Failed·과거 증거 보존, 명시적 소속,
+  중복 발생/Finding, 진행 중 조회, 파일 잠금, Windows 출력 파일 및 기동 후 재개를 검증한다.
+- 최종 전체 오프라인 테스트 192개(기존 170 + CLI 신규 22) 통과.
+- 수집 전후 소유 서비스·파일 해시 대조를 포함한 최종 CLI를 새 Run
+  `e2e-cli-final-20261017T090107570535Z`·포트 49274에서도 재현하여 Passed.
+  같은 시도 재실행·비교 일치 및 Lab 종료를 확인했다.
+- 두 실제 실행 모두 local-plan-demo. 실 AI·별도 Scanner·After Risk/Context·EOL,
+  전체 Before 분석의 시도별 사본, API·Dashboard·보고서는 남아 있다.
+- CLI 재현을 위한 새 테이블·마이그레이션·Dependency는 없다. SBOM 정확한 문서 복구
+  조회만 Repository에 추가했다. 최신 데이터나 다른 실행의 결과를 보충하지 않는다.
 
 ### 첫 번째 Lab 선정 기준
 
@@ -1140,8 +1164,8 @@ Docker CLI 설정 검사는 통과했지만 로컬 데몬·WSL2 조건 때문에
 - [x] vulnerable 환경 작성 (공통 Java 소스·호스트 빌드/기동 검증; Docker 기동 미검증)
 - [x] patched 환경 작성 (같은 기능 계약·별도 런타임·호스트 검증)
 - [x] SBOM 생성 확인 (명시적인 Java 패키지 범위, Before/After 각 2개)
-- [ ] CVE Mapping 확인
-- [ ] Risk 계산 확인
+- [x] CVE Mapping 확인 (실제 호스트 Lab 공개 조회; 지정한 Java 패키지 범위)
+- [x] Risk 계산 확인 (저장된 관측·자산 Context·기존 규칙; After Risk는 미확인)
 - [x] 개선 시나리오 작성 (가상 금융 Context·범위·필수 테스트; 실제 결과 없음)
 - [x] Verification 방법 작성 (기존 규칙·독립 증거·수동 가이드 연결)
 
@@ -1204,12 +1228,12 @@ Report
 ### 확인사항
 
 - [ ] 전체 Pipeline 실행 가능
-- [ ] 동일 입력 결과 재현 가능
-- [ ] Risk 계산 근거 확인 가능
+- [x] 동일 입력 결과 재현 가능 (저장된 시도·증거 비교와 CLI 재개; 실조회 시점 차이는 별도)
+- [x] Risk 계산 근거 확인 가능 (선택한 Before 60/P2의 CVSS·KEV 근거)
 - [ ] AI Hallucination 방지
 - [ ] 외부 API 장애 처리
-- [ ] Verification Evidence 존재
-- [ ] Verification Failed 시나리오 동작
+- [x] Verification Evidence 존재 (호스트 Lab의 명시적 시도별 원본·After 사본)
+- [x] Verification Failed 시나리오 동작 (오프라인 오류·기능 실패·반복 시도 테스트)
 - [ ] Risk Accepted 동작
 - [ ] Secret 미포함
 - [ ] Unit Test 통과

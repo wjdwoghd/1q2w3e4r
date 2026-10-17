@@ -106,8 +106,9 @@ python -m unittest discover -s tests -v
 실제 패치·운영 Scanner 실행이나 금융서비스 기능 테스트를 수행한 증거는 아니다.
 이번 작업에서 전체 오프라인 테스트 138개(기존 111개 + Phase 9 신규 27개)가 통과했다.
 
-실제 Scanner 및 기능 테스트 실행 어댑터, 첫 Lab의 생성·재분석 연결, API 연결과
-승인 기반 위험 수용은 후속 작업이다. 외부 결과 입력의 진위를 확보하는 책임은
+실제 Scanner, 운영 서비스용 기능 테스트 어댑터, API 연결과
+승인 기반 위험 수용은 후속 작업이다. 첫 Lab 연결은 아래 2026-10-17 기록을 따른다.
+외부 결과 입력의 진위를 확보하는 책임은
 수집 도구/호출자에 있으며 출처 문자열만으로 진위를 인증하지 않는다.
 기존 DB에는 `0007_verifications.sql`이 필요하고 새 DB는 최신 스키마로 초기화한다.
 
@@ -119,3 +120,36 @@ python -m unittest discover -s tests -v
 After Risk·EOL 또는 전체 Before 분석이 없으면 미확인 값과 사유를 반환한다.
 반복 검증과 Failed도 시도별로 조회할 수 있다. 집계 기준·출처·수집 시점·증거 ID와
 호출 계약은 [Before / After 문서](before_after.md)를 따른다.
+
+## 2026-10-17 실제 호스트 Lab 검증 및 공통 CLI
+
+수동 Run `lab-20261017T081606764Z`에서 자산 1, Finding 2, Remediation 1,
+Verification 1, `CVE-2021-44228`을 명시적으로 선택했다. 실제 Syft SBOM의 Log4j
+API/Core 각 발생은 2.14.1 → 2.25.5로 바뀌었다. Before는 실제 공개 조회에서 고유 CVE
+8개와 KEV CVE 2개를 저장했고 선택한 Finding의 Risk는 60/P2였다. 두 After 발생은
+각각 OSV `NO_MATCH`, 실제 health·합성 업무 HTTP 검사는 Passed였다.
+기존 `verification-1.0`은 이 시도를 Passed로 판정했다. 다른 Finding 7개의 Open 상태는
+자동으로 닫지 않았다. 판정·After digest·Before 원본 보존·동일 시도 비교를 읽기 전용으로
+재조회했고 이후 전체 오프라인 테스트 170개가 통과했다.
+
+공통 CLI로 별도 Run `e2e-cli-repro-20261017T085443243279Z`, 새 DB와 포트 54417에서
+동일 경로를 다시 수행했다. 명시적으로 선택한 자산 1·Finding 2·조치 1·시도 1이 Passed였고,
+같은 `after` 명령 재실행은 재조회·재판정 없이 저장된 증거를 재사용했다. 비교 조회 결과도
+같았다. CLI 작업 후 Lab은 종료했다. 원본 수동 Run의 DB·증거는 변경하지 않았다.
+
+두 실행 모두 Recommendation은 `local-plan-demo`다. 실제 AI 요청·별도 Scanner 실행,
+검증된 After Risk/Context·EOL, Docker 기동은 확인하지 않았다. Java 패키지 2개 범위의
+OSV 조회 결과를 OS·JDK·서비스 전체의 안전 판정으로 확대하지 않는다. 비교 시도에
+전체 Before 취약점 분석 사본은 없으므로 자산 전체 증감은 여전히 `None`이다.
+
+`scripts.e2e`의 `start`는 빈 목록 없는 필수 테스트 ID와 attempt key를 받고,
+`after`·`compare`는 자산·조치·검증 ID를 명시적으로 받는다. 수집 중 중단되면 같은
+명령으로 재개하되 저장된 Error/Failed를 새 성공 결과로 바꾸지 않는다. 새 수집은
+새 attempt key로 시작한다. 진행 중 비교는 별도 preview에 보존한다.
+명령과 종료 코드는 [실행 가이드](lab_e2e_runbook.md)를 따른다.
+
+소유 서비스의 수집 전후 대조를 포함한 최종 CLI도 별도 Run
+`e2e-cli-final-20261017T090107570535Z`·포트 49274에서 Passed와 동일 시도 반복·비교
+일치를 확인했다. 최종 전체 오프라인 테스트는 192개(기존 170 + CLI 신규 22) 통과다.
+새 테스트는 DB 저장/판정 직후 중단 복구, Failed 보존·새 시도 선택, 중복 발생·Finding,
+원본 변경 거부, 비교 무변경, 잠금 해제 및 Windows 기동 후 재개를 포함한다.

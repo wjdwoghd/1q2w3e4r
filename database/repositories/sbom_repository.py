@@ -65,3 +65,21 @@ class SQLiteSBOMRepository:
         return tuple(Component(row["id"], row["sbom_id"], row["position"],
                                row["name"], row["version"], row["purl"],
                                row["source_bom_ref"]) for row in rows)
+
+    def find_by_document(self, *, asset_id: int, source: str,
+                         raw_document: str) -> tuple[SBOM, ...]:
+        """Recover a committed import after a caller checkpoint was interrupted.
+
+        Return all exact matches; callers must reject ambiguity rather than pick
+        the newest SBOM. Component occurrence rows are never deduplicated.
+        """
+        rows = self.connection.execute(
+            """SELECT s.*, COUNT(c.id) AS component_count FROM sboms s
+               LEFT JOIN components c ON c.sbom_id = s.id
+               WHERE s.asset_id = ? AND s.source = ? AND s.raw_document = ?
+               GROUP BY s.id ORDER BY s.id""",
+            (asset_id, source, raw_document),
+        ).fetchall()
+        return tuple(SBOM(row["id"], row["asset_id"], row["source"],
+                          row["bom_format"], row["spec_version"], row["component_count"])
+                     for row in rows)

@@ -77,3 +77,14 @@ Scanner의 분석 범위를 구분하고 누락값·범위 불일치는 `None`�
 SBOM 생성은 기존 Wrapper, 분석·저장·검증은 기존 core·Repository를 호출한다.
 로컬 가상화가 없어도 호스트 방식의 준비·기능 검증이 가능하다. 상세 범위·명령은
 [Lab README](../labs/log4shell/README.md)를 따른다.
+
+공통 실행 진입점은 `python -m scripts.e2e`다. `VerificationWorkflow`는 기존 서비스와
+Repository를 조정하며 새 Risk·매칭·판정 규칙을 정의하지 않는다. `RunStore`의 로컬
+`run.json`은 재개용 체크포인트이고 DB의 불변 Snapshot과 구분한다. 증거 파일은 원자적으로
+생성하고 덮어쓰지 않으며, OS 파일 잠금은 프로세스 종료 시 해제된다. SQL은 기존
+Repository 및 정확한 SBOM 문서 복구 조회에만 있다.
+
+`labs/log4shell/runner.py`는 기존 PowerShell 도구를 호출한다. 장기 실행 Java 자식이
+출력 PIPE를 유지하여 CLI 종료가 지연되는 Windows 문제를 피하려고 stdout/stderr를
+일반 파일에 기록한다. 기동 후 중단되면 소유 프로세스·실제 버전·기동 시점·파일 해시를
+대조해 같은 변경을 재개하고 서비스를 중복 기동하지 않는다. 이 어댑터는 Lab 전용이다.

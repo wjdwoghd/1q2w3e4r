@@ -2,8 +2,10 @@
 
 가상의 금융사를 대상으로 SBOM, 취약점·공급망 위협정보, 금융서비스 자산정보를 결합하여 대응 우선순위를 산정하는 프로젝트이다. 금융권 보안기준을 참고해 개선방안을 제시하고, 조치 후 재검증을 통해 실제 개선 효과까지 확인하는 컨설팅 지원 플랫폼을 목표로 한다.
 
-> 현재 Phase 1~10의 core·Repository 기능과 오프라인 검증이 구현돼 있다. 실제 첫 Lab
-> 연결, API·Dashboard·보고서는 남아 있다. 현재 구현·검증 상태는 ROADMAP.md를 따른다.
+> Phase 1~10의 core·Repository와 첫 호스트 Lab E2E를 검증했다. 2026-10-17에는
+> 공통 CLI의 새 Run에서도 선택한 CVE의 Verification Passed와 반복 조회를 확인했다.
+> Recommendation은 로컬 연결 점검 모드다. 실 AI·Scanner·After Risk·EOL,
+> API·Dashboard·보고서는 남아 있다. 상세 상태는 ROADMAP.md를 따른다.
 
 기획 기준: [프로젝트 Notion 문서](https://app.notion.com/p/SBOM-3e24a9a6169880f6bc91dd3d61a376ac)
 
